@@ -43,7 +43,7 @@ public class PingPongTest {
         player("pong", table);
 
         // Line below quoted out to create "deadlock", which is not detected at compile time as in the
-        // sample in Go, but nevertheless the timeout indicates that something went wrong.
+        // sample in Go, but nevertheless the TimeoutException indicates that something went wrong.
 
         // table.send(new Ball()); // game on; toss the ball
 
