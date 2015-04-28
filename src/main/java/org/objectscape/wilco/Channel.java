@@ -1,9 +1,10 @@
 package org.objectscape.wilco;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 /**
@@ -14,32 +15,27 @@ public class Channel<T> {
     final private static Random Randomizer = new Random(System.currentTimeMillis());
 
     final private Queue queue;
-    private List<Consumer<T>> consumers = new ArrayList();
+    private List<Consumer<T>> consumers = new CopyOnWriteArrayList<>();
     private Runnable onClose;
     final private Object onCloseLock = new Object();
-    final private Object consumersLock = new Object();
     final private CompletableFuture<T> closedFuture = new CompletableFuture();
     private T closeValue;
-    final private List<T> buffer = new ArrayList();
+    final private AtomicBoolean suspended = new AtomicBoolean(true);
 
     public Channel(Queue queue) {
         this.queue = queue;
+        queue.suspend(); // wait till consumer(s) are added
     }
 
     public void send(T item) {
-        synchronized (consumersLock) {
-            if(!consumers.isEmpty()) {
-                queue.execute(() -> {
-                    getNextConsumer().accept(item);
-                });
-            }
-            else {
-                buffer.add(item);
-            }
-        }
+        queue.execute(() -> {
+            getNextConsumer(consumers).accept(item);
+        });
     }
 
-    private Consumer<T> getNextConsumer() {
+    private Consumer<T> getNextConsumer(List<Consumer<T>> consumers) {
+        assert !consumers.isEmpty();
+        // Consumers never shrinks, only grows. So this is safe.
         if(consumers.size() == 1) {
             return consumers.get(0);
         }
@@ -47,19 +43,11 @@ public class Channel<T> {
     }
 
     public CompletableFuture<T> onReceive(Consumer<T> consumer) {
-        synchronized (consumersLock) {
-            consumers.add(consumer);
-            if(buffer.isEmpty()) {
-                return closedFuture;
-            }
-            for(T item : buffer) {
-                queue.execute(() -> {
-                    getNextConsumer().accept(item);
-                });
-            }
-            buffer.clear();
-            return closedFuture;
+        consumers.add(consumer);
+        if(suspended.get() && suspended.compareAndSet(true, false)) {
+            queue.resume();
         }
+        return closedFuture;
     }
 
     public void close(T closeValue) {
@@ -68,7 +56,7 @@ public class Channel<T> {
             this.closeValue = closeValue;
             closedFuture.complete(closeValue);
             if(onClose != null) {
-                queue.executeOnClose(() -> onClose.run());
+                queue.executeIgnoreClose(() -> onClose.run());
             }
         }
     }
@@ -80,7 +68,7 @@ public class Channel<T> {
             }
             this.onClose = onClose;
             if(closeValue != null) {
-                queue.executeOnClose(() -> onClose.run());
+                queue.executeIgnoreClose(() -> onClose.run());
             }
         }
     }

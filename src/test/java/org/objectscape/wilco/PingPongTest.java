@@ -3,7 +3,6 @@ package org.objectscape.wilco;
 import org.junit.Test;
 import org.objectscape.wilco.model.Ball;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 /**

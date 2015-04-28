@@ -37,7 +37,7 @@ public class Queue {
         core.scheduleUserTask(new ScheduledTask(queueAnchor, runnable, whenDoneRunnable));
     }
 
-    protected void executeOnClose(Runnable runnable) {
+    protected void executeIgnoreClose(Runnable runnable) {
         // does not check whether closed.
         core.scheduleUserTask(new ScheduledTask(queueAnchor, runnable));
     }
