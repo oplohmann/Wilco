@@ -74,7 +74,7 @@ public class Channel<T> {
         }
         queue.executeIgnoreClose(() -> {
             if (closeValue != null) {
-                onClose.run();
+                onCloseRef.get().run();
             }
         });
     }
