@@ -55,14 +55,9 @@ public class Channel<T> {
 
     public void close(T closeValue) {
         queue.execute(() -> {
-            boolean alreadyClosed = false;
             try {
                 queue.close();
             } catch (QueueClosedException e) {
-                // no non-local returns in Java
-                alreadyClosed = true;
-            }
-            if(alreadyClosed) {
                 return;
             }
             this.closeValue = closeValue;
