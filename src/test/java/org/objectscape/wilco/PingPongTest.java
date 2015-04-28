@@ -53,7 +53,6 @@ public class PingPongTest {
             System.out.println("grab the ball and don't re-send it; game over");
             table.close(ball);
         }).get(1, TimeUnit.SECONDS);  // timeout after 1 second indicates that something went wrong
-
     }
 
     private void player(String name, Channel<Ball> table) {
