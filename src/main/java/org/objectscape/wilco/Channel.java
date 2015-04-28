@@ -25,10 +25,21 @@ public class Channel<T> {
     final private CompletableFuture<T> closedFuture = new CompletableFuture();
     private T closeValue;
     final private AtomicBoolean suspended = new AtomicBoolean(true);
+    private int currentSelectedConsumer;
 
     public Channel(Queue queue) {
+        this(queue, true);
+    }
+
+    public Channel(Queue queue, boolean selectConsumersRandomized) {
         this.queue = queue;
         queue.suspend(); // wait till consumer(s) are added
+        if(selectConsumersRandomized) {
+            currentSelectedConsumer = -1;
+        }
+        else {
+            currentSelectedConsumer = 0;
+        }
     }
 
     public void send(T item) {
@@ -39,10 +50,23 @@ public class Channel<T> {
 
     private Consumer<T> getNextConsumer(List<Consumer<T>> consumers) {
         assert !consumers.isEmpty();
+
         // Consumers never shrinks, only grows. So this is safe.
         if(consumers.size() == 1) {
             return consumers.get(0);
         }
+
+        if(currentSelectedConsumer != -1) {
+            if(currentSelectedConsumer == consumers.size()) {
+                currentSelectedConsumer = 0;
+            };
+
+            int index = currentSelectedConsumer;
+            currentSelectedConsumer++;
+
+            return consumers.get(index);
+        }
+
         return consumers.get(Randomizer.nextInt(consumers.size()));
     }
 

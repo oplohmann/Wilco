@@ -16,7 +16,7 @@ public class PingPongTest {
     public void pingPong() throws InterruptedException, ExecutionException {
         // modeled after this sample in Go: http://talks.golang.org/2013/advconc.slide#6
 
-        Channel<Ball> table = wilco.createChannel();
+        Channel<Ball> table = wilco.createChannel(false);
 
         player("ping", table);
         player("pong", table);

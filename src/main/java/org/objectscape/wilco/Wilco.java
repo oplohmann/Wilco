@@ -47,7 +47,11 @@ public class Wilco {
     }
 
     public Channel createChannel() {
-        return new Channel(createQueue());
+        return new Channel(createQueue(), true);
+    }
+
+    public Channel createChannel(boolean selectConsumersRandomized) {
+        return new Channel(createQueue(), selectConsumersRandomized);
     }
 
     public Queue createQueue(String id) {
