@@ -17,8 +17,7 @@ public class PipelineTest {
     public void generateSequence() throws ExecutionException, InterruptedException {
         // modeled after this sample in Go: https://blog.golang.org/pipelines
 
-        Channel<Integer> channel = generate(1, 2, 3, 4);
-        Channel<Integer> out = sequence(sequence(sequence(channel)));
+        Channel<Integer> out = sequence(sequence(sequence(generate(1, 2, 3, 4))));
         CompletableFuture<Integer> future = out.onReceive(n -> {
             System.out.println(n);
         });
@@ -28,9 +27,7 @@ public class PipelineTest {
 
     private Channel<Integer> sequence(Channel<Integer> channel) throws InterruptedException {
         Channel<Integer> out = wilco.createChannel();
-        // FIXME - stuff breaks if Thread.sleep(1000) is done here
         channel.onReceive(n -> out.send(n * n));
-        // FIXME - stuff breaks if Thread.sleep(1000) is done here
         channel.onClose(() -> out.close(0));
         return out;
     }

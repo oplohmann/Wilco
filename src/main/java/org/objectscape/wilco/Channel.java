@@ -1,10 +1,13 @@
 package org.objectscape.wilco;
 
+import org.objectscape.wilco.core.QueueClosedException;
+
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 /**
@@ -16,7 +19,7 @@ public class Channel<T> {
 
     final private Queue queue;
     private List<Consumer<T>> consumers = new CopyOnWriteArrayList<>();
-    private Runnable onClose;
+    private AtomicReference<Runnable> onCloseRef = new AtomicReference<>();
     final private Object onCloseLock = new Object();
     final private CompletableFuture<T> closedFuture = new CompletableFuture();
     private T closeValue;
@@ -51,26 +54,34 @@ public class Channel<T> {
     }
 
     public void close(T closeValue) {
-        queue.close();
-        synchronized (onCloseLock) {
+        queue.execute(() -> {
+            boolean alreadyClosed = false;
+            try {
+                queue.close();
+            } catch (QueueClosedException e) {
+                // no non-local returns in Java
+                alreadyClosed = true;
+            }
+            if(alreadyClosed) {
+                return;
+            }
             this.closeValue = closeValue;
             closedFuture.complete(closeValue);
-            if(onClose != null) {
-                queue.executeIgnoreClose(() -> onClose.run());
+            if (onCloseRef.get() != null) {
+                queue.executeIgnoreClose(() -> onCloseRef.get().run());
             }
-        }
+        });
     }
 
     public void onClose(Runnable onClose) {
-        synchronized (onCloseLock) {
-            if(this.onClose != null) {
-                throw new RuntimeException("on close callback already defined");
-            }
-            this.onClose = onClose;
-            if(closeValue != null) {
-                queue.executeIgnoreClose(() -> onClose.run());
-            }
+        if(!onCloseRef.compareAndSet(null, onClose)) {
+            throw new RuntimeException("on close callback already defined");
         }
+        queue.executeIgnoreClose(() -> {
+            if (closeValue != null) {
+                onClose.run();
+            }
+        });
     }
 
 }
