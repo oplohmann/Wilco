@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -15,7 +16,7 @@ import java.util.function.Consumer;
  */
 public class Channel<T> {
 
-    final private static Random Randomizer = new Random(System.currentTimeMillis());
+    final private static ThreadLocalRandom Randomizer = ThreadLocalRandom.current();
 
     final private Queue queue;
     private List<Consumer<T>> consumers = new CopyOnWriteArrayList<>();
