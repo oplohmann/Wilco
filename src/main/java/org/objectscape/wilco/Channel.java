@@ -3,7 +3,6 @@ package org.objectscape.wilco;
 import org.objectscape.wilco.core.QueueClosedException;
 
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
@@ -21,7 +20,6 @@ public class Channel<T> {
     final private Queue queue;
     private List<Consumer<T>> consumers = new CopyOnWriteArrayList<>();
     private AtomicReference<Runnable> onCloseRef = new AtomicReference<>();
-    final private Object onCloseLock = new Object();
     final private CompletableFuture<T> closedFuture = new CompletableFuture();
     private T closeValue;
     final private AtomicBoolean suspended = new AtomicBoolean(true);
