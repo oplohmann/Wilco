@@ -10,26 +10,21 @@ import org.objectscape.wilco.util.IdStore;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by plohmann on 19.02.2015.
  */
 public class Wilco {
 
-    private static AtomicInteger InstanceCount = new AtomicInteger(0);
-
-    final private int instanceId = InstanceCount.incrementAndGet();
     final private IdStore idStore = new IdStore();
-
     final private WilcoCore core;
-
-    public static Wilco newInstance(Config config) {
-        return new Wilco(config);
-    }
 
     public Wilco() {
         this(new Config());
+    }
+
+    public static Wilco newInstance(Config config) {
+        return new Wilco(config);
     }
 
     public Wilco(Config config) {
