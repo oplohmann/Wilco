@@ -64,8 +64,7 @@ public class PingerTest extends AbstractTest {
         async(() -> pinger(channel, latch, iters));
 
         latch.await();
-        channel.close();
-        done.get();
+        channel.closeAndWaitTillDone();
 
         Assert.assertEquals(iters * 2, output.size());
     }

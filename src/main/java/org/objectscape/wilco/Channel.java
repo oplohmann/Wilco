@@ -5,6 +5,7 @@ import org.objectscape.wilco.core.QueueClosedException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -95,6 +96,11 @@ public class Channel<T> {
 
     public void close() {
         close(null);
+    }
+
+    public void closeAndWaitTillDone() throws ExecutionException, InterruptedException {
+        close(null);
+        closedFuture.get();
     }
 
     public void onClose(Runnable onClose) {
