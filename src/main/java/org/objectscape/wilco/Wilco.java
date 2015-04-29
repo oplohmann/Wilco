@@ -9,7 +9,6 @@ import org.objectscape.wilco.util.IdStore;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -57,12 +56,12 @@ public class Wilco {
         return new Queue(new QueueAnchor(idStore.compareAndSetId(id)), core);
     }
 
-    public Future<Void> shutdown() {
+    public CompletableFuture<Void> shutdown() {
         return shutdown(10, TimeUnit.SECONDS);
     }
 
-    public Future<Void> shutdown(int duration, TimeUnit unit) {
-        Future<Void> future = new CompletableFuture<>();
+    public CompletableFuture<Void> shutdown(int duration, TimeUnit unit) {
+        CompletableFuture<Void> future = new CompletableFuture<>();
         core.scheduleAdminTask(new ShutdownTask(future, duration, unit));
         return future;
     }
