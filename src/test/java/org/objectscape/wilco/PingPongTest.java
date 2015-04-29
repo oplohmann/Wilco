@@ -18,7 +18,7 @@ public class PingPongTest {
     public void pingPong() throws InterruptedException, ExecutionException {
         // modeled after this sample in Go: http://talks.golang.org/2013/advconc.slide#6
 
-        Channel<Ball> table = wilco.createChannel(false);
+        Channel<Ball> table = wilco.createChannel(Alternation.Cyclic);
 
         player("ping", table);
         player("pong", table);
@@ -37,7 +37,7 @@ public class PingPongTest {
     public void pingPongPseudoDeadlockDetection() throws InterruptedException, ExecutionException, TimeoutException {
         // modeled after this sample in Go: http://talks.golang.org/2013/advconc.slide#7
 
-        Channel<Ball> table = wilco.createChannel(false);
+        Channel<Ball> table = wilco.createChannel(Alternation.Cyclic);
 
         player("ping", table);
         player("pong", table);

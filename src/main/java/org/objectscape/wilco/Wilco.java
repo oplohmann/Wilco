@@ -12,7 +12,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 
 /**
  * Created by plohmann on 19.02.2015.
@@ -47,11 +46,11 @@ public class Wilco {
     }
 
     public Channel createChannel() {
-        return new Channel(createQueue(), true);
+        return new Channel(createQueue(), Alternation.Random);
     }
 
-    public Channel createChannel(boolean selectConsumersRandomized) {
-        return new Channel(createQueue(), selectConsumersRandomized);
+    public Channel createChannel(Alternation alternationBetweenReceivers) {
+        return new Channel(createQueue(), alternationBetweenReceivers);
     }
 
     public Queue createQueue(String id) {

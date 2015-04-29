@@ -26,13 +26,13 @@ public class Channel<T> {
     private int currentSelectedConsumer;
 
     public Channel(Queue queue) {
-        this(queue, true);
+        this(queue, Alternation.Random);
     }
 
-    public Channel(Queue queue, boolean selectConsumersRandomized) {
+    public Channel(Queue queue, Alternation alternationBetweenReceivers) {
         this.queue = queue;
         queue.suspend(); // wait till consumer(s) are added
-        if(selectConsumersRandomized) {
+        if(Alternation.Random.equals(alternationBetweenReceivers)) {
             currentSelectedConsumer = -1;
         }
         else {
