@@ -49,7 +49,7 @@ public class Channel<T> {
     private Consumer<T> getNextConsumer(List<Consumer<T>> consumers) {
         assert !consumers.isEmpty();
 
-        // Consumers never shrinks, only grows. So this is safe.
+        // consumers never shrinks, only grows. So this is safe.
         if(consumers.size() == 1) {
             return consumers.get(0);
         }
