@@ -5,8 +5,6 @@ import org.junit.Test;
 
 import java.util.List;
 import java.util.Vector;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -53,30 +51,28 @@ public class PingerTest extends AbstractTest {
     @Test
     public void pinging() throws InterruptedException, ExecutionException {
         Channel<String> channel = wilco.createChannel();
-        CountDownLatch latch = new CountDownLatch(2);
         List<String> output = new Vector<>();
         int iters = 3;
 
-        async(() -> pinger(channel, latch, iters));
+        async(() -> pinger(channel, iters, false));
+        async(() -> printer(channel, output));
+        async(() -> pinger(channel, iters, true));
 
-        CompletableFuture<String> done = printer(channel, output);
-
-        async(() -> pinger(channel, latch, iters));
-
-        latch.await();
-        channel.closeAndWaitTillDone();
+        channel.waitTillClosed();
 
         Assert.assertEquals(iters * 2, output.size());
     }
 
-    private CompletableFuture<String> printer(Channel<String> channel, List<String> outpout) {
-        return channel.onReceive(message -> outpout.add(message));
+    private void printer(Channel<String> channel, List<String> outpout) {
+        channel.onReceive(message -> outpout.add(message));
     }
 
-    private void pinger(Channel<String> channel, CountDownLatch latch, int iters) {
+    private void pinger(Channel<String> channel, int iters, boolean closeWhenDone) {
         for (int i = 0; i < iters; i++) {
             channel.send("ping");
         }
-        latch.countDown();
+        if(closeWhenDone) {
+            channel.close();
+        }
     }
 }

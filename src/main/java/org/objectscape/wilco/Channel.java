@@ -114,4 +114,8 @@ public class Channel<T> {
         });
     }
 
+    public void waitTillClosed() throws ExecutionException, InterruptedException {
+        closedFuture.get();
+    }
+
 }
