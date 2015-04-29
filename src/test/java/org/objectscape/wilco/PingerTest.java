@@ -15,7 +15,9 @@ import java.util.concurrent.ExecutionException;
 
 /*
 
-Test case models this Go sample taken from "An Introduction to Programming in Go" by Caleb Doxsey, p. 112
+Test case models the Go sample taken from "An Introduction to Programming in Go" by Caleb Doxsey, p. 112
+This book is freely available from http://www.golang-book.com or as PDF from https://www.golang-book.com/assets/pdf/gobook.pdf
+
 package main
 
 import (
@@ -28,6 +30,7 @@ func pinger(c chan string) {
 		c <- "ping"
 	}
 }
+
 func printer(c chan string) {
 	for {
 		msg := <-c
@@ -35,6 +38,7 @@ func printer(c chan string) {
 		time.Sleep(time.Second * 1)
 	}
 }
+
 func main() {
 	var c chan string = make(chan string)
 	go pinger(c)
