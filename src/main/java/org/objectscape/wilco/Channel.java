@@ -55,6 +55,7 @@ public class Channel<T> {
         }
 
         if(currentSelectedConsumer != -1) {
+            // alternate between consumers in a cyclic way
             if(currentSelectedConsumer == consumers.size()) {
                 currentSelectedConsumer = 0;
             };
@@ -65,6 +66,7 @@ public class Channel<T> {
             return consumers.get(index);
         }
 
+        // undetermined selection of next consumer
         return consumers.get(Randomizer.nextInt(consumers.size()));
     }
 
