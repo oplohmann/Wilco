@@ -45,12 +45,12 @@ public class Wilco {
         return new Queue(new QueueAnchor(idStore.generateId()), core);
     }
 
-    public Channel createChannel() {
-        return new Channel(createQueue(), Alternation.Random);
+    public <T> Channel<T> createChannel() {
+        return new Channel<>(createQueue(), Alternation.Random);
     }
 
-    public Channel createChannel(Alternation alternationBetweenReceivers) {
-        return new Channel(createQueue(), alternationBetweenReceivers);
+    public <T> Channel<T> createChannel(Alternation alternationBetweenReceivers) {
+        return new Channel<>(createQueue(), alternationBetweenReceivers);
     }
 
     public Queue createQueue(String id) {
