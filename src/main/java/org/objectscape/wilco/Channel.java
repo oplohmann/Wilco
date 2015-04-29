@@ -94,12 +94,16 @@ public class Channel<T> {
         });
     }
 
+    public CompletableFuture<T> getClosedFuture() {
+        return closedFuture;
+    }
+
     public void close() {
         close(null);
     }
 
     public void closeAndWaitTillDone() throws ExecutionException, InterruptedException {
-        close(null);
+        close();
         closedFuture.get();
     }
 
