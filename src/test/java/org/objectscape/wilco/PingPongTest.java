@@ -10,9 +10,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * Created by Nutzer on 23.04.2015.
  */
-public class PingPongTest {
-
-    private Wilco wilco = Wilco.newInstance(new Config());
+public class PingPongTest extends AbstractTest {
 
     @Test
     public void pingPong() throws InterruptedException, ExecutionException {

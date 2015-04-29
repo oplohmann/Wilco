@@ -93,6 +93,10 @@ public class Channel<T> {
         });
     }
 
+    public void close() {
+        close(null);
+    }
+
     public void onClose(Runnable onClose) {
         if(!onCloseRef.compareAndSet(null, onClose)) {
             throw new RuntimeException("on close callback already defined");

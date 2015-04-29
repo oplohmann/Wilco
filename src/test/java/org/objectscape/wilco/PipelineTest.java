@@ -11,10 +11,7 @@ import java.util.concurrent.ExecutionException;
 /**
  * Created by plohmann on 23.04.2015.
  */
-public class PipelineTest {
-
-    private Wilco wilco = Wilco.newInstance(new Config());
-    private Queue globalQueue = wilco.createQueue();
+public class PipelineTest extends AbstractTest {
 
     @Test
     public void generateSequence() throws ExecutionException, InterruptedException {
@@ -37,7 +34,7 @@ public class PipelineTest {
 
     private Channel<Integer> generate(int ... ints) {
         Channel<Integer> out = wilco.createChannel();
-        globalQueue.execute(() -> {
+        async(() -> {
             for (int i : ints) {
                 out.send(i);
             }
