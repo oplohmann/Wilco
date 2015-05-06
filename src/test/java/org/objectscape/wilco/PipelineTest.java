@@ -19,8 +19,8 @@ public class PipelineTest extends AbstractTest {
         List<Integer> ints = new Vector<>();
 
         Channel<Integer> out = sequence(sequence(sequence(generate(1, 2, 3, 4))));
-        CompletableFuture<Integer> future = out.onReceive(n -> ints.add(n));
-        future.get();
+        CompletableFuture<Integer> closeFuture = out.onReceive(n -> ints.add(n));
+        closeFuture.get();
 
         Assert.assertArrayEquals(ints.toArray(), new Integer[] {1, 256, 6561, 65536});
     }
