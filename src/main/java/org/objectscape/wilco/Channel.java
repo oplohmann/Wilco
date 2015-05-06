@@ -24,7 +24,7 @@ public class Channel<T> {
     final private CompletableFuture<T> closedFuture = new CompletableFuture();
     private T closeValue;
     final private AtomicBoolean suspended = new AtomicBoolean(true);
-    private int currentSelectedConsumer;
+    private int currentSelectedConsumer = -1;
 
     public Channel(Queue queue) {
         this(queue, Alternation.Random);
@@ -35,8 +35,7 @@ public class Channel<T> {
         queue.suspend(); // wait till consumer(s) are added
         if(Alternation.Random.equals(alternationBetweenReceivers)) {
             currentSelectedConsumer = -1;
-        }
-        else {
+        } else if(Alternation.Cyclic.equals(alternationBetweenReceivers)) {
             currentSelectedConsumer = 0;
         }
     }
