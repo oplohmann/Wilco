@@ -81,7 +81,7 @@ public class QueueAnchor implements SchedulerControlled {
     }
 
     public void checkClosed() {
-        if(closed.get()) {
+        if(isClosed()) {
             throwQueueClosed();
         }
     }
