@@ -10,6 +10,14 @@ import java.util.concurrent.atomic.AtomicMarkableReference;
 public class ScratchTest {
 
     @Test
+    public void scratch2() {
+        boolean foo = true;
+        boolean bar =! foo;
+        System.out.println(bar);
+    }
+
+
+    @Test
     public void scratch() throws InterruptedException {
 
         Thread myThread = new Thread(()-> {

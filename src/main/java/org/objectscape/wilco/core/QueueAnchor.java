@@ -2,7 +2,6 @@ package org.objectscape.wilco.core;
 
 import org.objectscape.wilco.util.LinkedQueue;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -11,9 +10,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class QueueAnchor implements SchedulerControlled {
 
     final private String id;
-    final private AtomicInteger size = new AtomicInteger(0);
+    final private AtomicInteger userTasksCount = new AtomicInteger(0);
     final private LinkedQueue<ScheduledRunnable> waitingTasks = new LinkedQueue<>();
-    final private AtomicBoolean closed = new AtomicBoolean(false);
     private boolean suspended = false;
 
     public QueueAnchor(String id) {
@@ -24,17 +22,12 @@ public class QueueAnchor implements SchedulerControlled {
         return id;
     }
 
-    public int size() {
-        return size.get();
-    }
-
-    public int decrementSize() {
-        return size.decrementAndGet();
+    public int userTasksCount() {
+        return userTasksCount.get();
     }
 
     public boolean addTask(ScheduledRunnable runnable) {
         waitingTasks.addLast(runnable);
-        size.incrementAndGet();
         if(suspended) {
             return false;
         }
@@ -42,7 +35,7 @@ public class QueueAnchor implements SchedulerControlled {
     }
 
     public ScheduledRunnable removeCurrentTask() {
-        size.decrementAndGet();
+        userTasksCount.decrementAndGet();
         return waitingTasks.removeFirst();
     }
 
@@ -65,24 +58,7 @@ public class QueueAnchor implements SchedulerControlled {
         this.suspended = suspended;
     }
 
-    public void close() {
-        if(!closed.compareAndSet(false, true)) {
-            // queue already closed
-            throwQueueClosed();
-        }
-    }
-
-    private void throwQueueClosed() {
-        throw new QueueClosedException("queue " + id + " closed");
-    }
-
-    public boolean isClosed() {
-        return closed.get();
-    }
-
-    public void checkClosed() {
-        if(isClosed()) {
-            throwQueueClosed();
-        }
+    public void incrementSize() {
+        userTasksCount.incrementAndGet();
     }
 }
