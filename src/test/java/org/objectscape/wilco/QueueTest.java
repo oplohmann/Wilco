@@ -13,11 +13,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 /**
- * Created by plohmann on 19.02.2015.
+ * Created by plohmann on 07.05.2015.
  */
 
-
-public class WilcoTest {
+public class QueueTest {
 
     @Test
     public void createInstance() {
@@ -104,7 +103,7 @@ public class WilcoTest {
     }
 
     @Test
-    public void channelSuspendResume() throws InterruptedException {
+    public void queueSuspendResume() throws InterruptedException {
 
         Wilco wilco = Wilco.newInstance(new Config());
         Queue queue = wilco.createQueue();
@@ -247,8 +246,8 @@ public class WilcoTest {
         Assert.assertFalse(timeOut);
 
         Assert.assertEquals(
-            numValues + 1, // +1 because of "anything" being added to transferQueue in the end
-            transferQueue.size());
+                numValues + 1, // +1 because of "anything" being added to transferQueue in the end
+                transferQueue.size());
 
         // test that order is retained
         for (int i = 0; i < numValues; i++) {
