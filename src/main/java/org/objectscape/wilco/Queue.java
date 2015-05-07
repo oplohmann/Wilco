@@ -90,7 +90,9 @@ public class Queue {
             unlock();
         }
 
-        // free ref to core to make this object reachable by the GC
+        // Free ref to core to make this object reachable by the GC.
+        // NullPointerException because core is null will not happen, because for every call
+        // accessing core a QueueClosedException will be thrown before any method is invoked on core.
         core = null;
     }
 
@@ -125,9 +127,9 @@ public class Queue {
 
     }
 
-    private void lock(boolean mark) {
+    private void lock(boolean expectedAndNewMark) {
         Thread currentThread = Thread.currentThread();
-        while(!guard.compareAndSet(null, currentThread, mark, mark)) {
+        while(!guard.compareAndSet(null, currentThread, expectedAndNewMark, expectedAndNewMark)) {
             if(guard.isMarked()) {
                 throw new QueueClosedException("Queue " + getId() + " closed");
             } else {

@@ -166,6 +166,41 @@ public class QueueTest {
     }
 
     @Test
+    public void doubleCloseChannel() throws InterruptedException {
+        Wilco wilco = Wilco.newInstance(new Config());
+        Queue queue = wilco.createQueue();
+
+        CountDownLatch latch = new CountDownLatch(2);
+        AtomicInteger queueClosedExceptionCount = new AtomicInteger(0);
+
+        Thread closeThread1 = new Thread(()-> {
+            try {
+                queue.close();
+            } catch (Exception e) {
+                queueClosedExceptionCount.incrementAndGet();
+            } finally {
+                latch.countDown();
+            }
+        });
+
+        Thread closeThread2 = new Thread(()-> {
+            try {
+                queue.close();
+            } catch (Exception e) {
+                queueClosedExceptionCount.incrementAndGet();
+            } finally {
+                latch.countDown();
+            }
+        });
+
+        closeThread1.start();
+        closeThread2.start();
+
+        latch.await(5, TimeUnit.SECONDS);
+        Assert.assertEquals(queueClosedExceptionCount.get(), 1);
+    }
+
+    @Test
     public void registerDeadLetterQueue() throws InterruptedException {
         Wilco wilco = Wilco.newInstance(new Config());
         Queue queue = wilco.createQueue();
