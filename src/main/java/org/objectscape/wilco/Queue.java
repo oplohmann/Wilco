@@ -141,7 +141,7 @@ public class Queue {
     private void otherThreadWon() {
         // other thread won, keep spinning to obtain the lock
         // for testing/debugging
-        System.out.println("other thread won");
+        // System.out.println("other thread won");
     }
 
     private boolean lockForClosedOrOpen() {
