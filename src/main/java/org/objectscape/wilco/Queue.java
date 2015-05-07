@@ -19,7 +19,7 @@ public class Queue {
     private final static boolean QUEUE_CLOSED_MARK = true;
 
     final private QueueAnchor queueAnchor;
-    final private WilcoCore core;
+    private WilcoCore core;
 
     final private AtomicMarkableReference<Thread> guard = new AtomicMarkableReference(null, QUEUE_OPEN_MARK);
 
@@ -46,12 +46,12 @@ public class Queue {
 
     protected void executeIgnoreClose(Runnable runnable) {
         // Does not check whether closed. Therefore also no QueueClosedException is thrown
-        boolean mark = lockForClosedOrOpen();
         try {
+            lockForClosedOrOpen();
             core.scheduleUserTask(new ScheduledTask(queueAnchor, runnable));
         }
         finally {
-            unlock(mark);
+            unlock();
         }
     }
 
@@ -87,8 +87,11 @@ public class Queue {
             lock(QUEUE_CLOSED_MARK);
             core.scheduleAdminTask(new CloseQueueTask());
         } finally {
-            unlock(QUEUE_CLOSED_MARK);
+            unlock();
         }
+
+        // free ref to core to make this object reachable by the GC
+        core = null;
     }
 
     private void lockedForExecute(Runnable runnable) {
@@ -97,7 +100,7 @@ public class Queue {
             runnable.run();
         }
         finally {
-            unlock(QUEUE_OPEN_MARK);
+            unlock();
         }
     }
 
@@ -108,16 +111,16 @@ public class Queue {
             runnable.run();
         }
         finally {
-            unlock(QUEUE_OPEN_MARK);
+            unlock();
         }
     }
 
-    private void unlock(boolean mark) {
+    private void unlock() {
         // leave critical section
         if(guard.isMarked()) {
             guard.set(null, QUEUE_CLOSED_MARK);
         } else {
-            guard.set(null, mark);
+            guard.set(null, QUEUE_OPEN_MARK);
         }
 
     }
