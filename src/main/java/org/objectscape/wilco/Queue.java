@@ -45,7 +45,7 @@ public class Queue {
     }
 
     protected void executeIgnoreClose(Runnable runnable) {
-        // does not check whether closed.
+        // Does not check whether closed. Therefore also no QueueClosedException is thrown
         boolean mark = lockForClosedOrOpen();
         try {
             core.scheduleUserTask(new ScheduledTask(queueAnchor, runnable));
@@ -84,7 +84,7 @@ public class Queue {
         }
 
         try {
-            lockForClose();
+            lock(QUEUE_CLOSED_MARK);
             core.scheduleAdminTask(new CloseQueueTask());
         } finally {
             unlock(QUEUE_CLOSED_MARK);
@@ -92,35 +92,41 @@ public class Queue {
     }
 
     private void lockedForExecute(Runnable runnable) {
-        boolean mark = lockForExecute();
         try {
+            lock(QUEUE_OPEN_MARK);
             runnable.run();
         }
         finally {
-            unlock(mark);
+            unlock(QUEUE_OPEN_MARK);
         }
     }
 
     private void lockedForExecuteUser(Runnable runnable) {
-        boolean mark = lockForExecute();
         try {
+            lock(QUEUE_OPEN_MARK);
             queueAnchor.incrementSize();
             runnable.run();
         }
         finally {
-            unlock(mark);
+            unlock(QUEUE_OPEN_MARK);
         }
     }
 
     private void unlock(boolean mark) {
-        guard.set(null, mark); // leave critical section
+        // leave critical section
+        if(guard.isMarked()) {
+            guard.set(null, QUEUE_CLOSED_MARK);
+        } else {
+            guard.set(null, mark);
+        }
+
     }
 
-    private void lockForClose() {
+    private void lock(boolean mark) {
         Thread currentThread = Thread.currentThread();
-        while(!guard.compareAndSet(null, currentThread, QUEUE_CLOSED_MARK, QUEUE_CLOSED_MARK)) {
+        while(!guard.compareAndSet(null, currentThread, mark, mark)) {
             if(guard.isMarked()) {
-                throw new QueueClosedException("Queue " + getId() + " already closed");
+                throw new QueueClosedException("Queue " + getId() + " closed");
             } else {
                 otherThreadWon();
             }
@@ -143,18 +149,6 @@ public class Queue {
             otherThreadWon();
         }
         return mark;
-    }
-
-    private boolean lockForExecute() {
-        Thread currentThread = Thread.currentThread();
-        while(!guard.compareAndSet(null, currentThread, QUEUE_OPEN_MARK, QUEUE_OPEN_MARK)) {
-            if(guard.isMarked()) {
-                throw new QueueClosedException("Queue " + getId() + " closed");
-            } else {
-                otherThreadWon();
-            }
-        }
-        return QUEUE_OPEN_MARK;
     }
 
     public boolean isClosed() {

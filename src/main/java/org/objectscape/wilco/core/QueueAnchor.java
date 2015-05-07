@@ -34,6 +34,10 @@ public class QueueAnchor implements SchedulerControlled {
         return waitingTasks.size() == 1;
     }
 
+    public boolean isEmpty() {
+        return waitingTasks.size() == 0;
+    }
+
     public ScheduledRunnable removeCurrentTask() {
         userTasksCount.decrementAndGet();
         return waitingTasks.removeFirst();

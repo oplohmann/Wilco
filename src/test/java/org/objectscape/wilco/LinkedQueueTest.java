@@ -1,8 +1,11 @@
 package org.objectscape.wilco;
 
+import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.junit.Assert;
 import org.junit.Test;
 import org.objectscape.wilco.util.LinkedQueue;
+
+import java.util.LinkedList;
 
 /**
  * Created by plohmann on 03.03.2015.
@@ -95,5 +98,38 @@ public class LinkedQueueTest {
 
         Assert.assertEquals(list.peekFirst().intValue(), 4);
         Assert.assertEquals(list.removeFirst().intValue(), 4);
+    }
+
+    @Test
+    @Ignore
+    public void littlePerformanceEstimation() {
+
+        // for n > 7.000.000 LinkedList causes OutOfMemoryError
+        // while LinkedQueue doesn't. LinkedTransferQueue causes no
+        // OutOfMemoryError, but is much slower than LinkedQueue
+        long n = 3000000;
+        long start = System.currentTimeMillis();
+        LinkedQueue<Integer> list = new LinkedQueue<Integer>();
+        for (int i = 0; i < n; i++) {
+            list.addLast(i);
+        }
+
+        while(!list.isEmpty()) {
+            list.removeFirst();
+        }
+
+        // System.out.println(System.currentTimeMillis() - start);
+
+        start = System.currentTimeMillis();
+        LinkedList<Integer> list2 = new LinkedList<>();
+        for (int i = 0; i < n; i++) {
+            list2.add(i);
+        }
+
+        while(!list2.isEmpty()) {
+            list2.remove(0);
+        }
+
+        // System.out.println(System.currentTimeMillis() - start);
     }
 }
