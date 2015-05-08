@@ -1,6 +1,7 @@
 package org.objectscape.wilco;
 
 import junit.framework.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.objectscape.wilco.core.DuplicateIdException;
 import org.objectscape.wilco.core.QueueClosedException;
@@ -16,7 +17,7 @@ import java.util.function.Consumer;
  * Created by plohmann on 07.05.2015.
  */
 
-public class QueueTest {
+public class QueueTest extends AbstractTest {
 
     @Test
     public void createInstance() {
@@ -26,7 +27,6 @@ public class QueueTest {
     @Test
     public void createChannel() throws InterruptedException, ExecutionException {
 
-        Wilco wilco = Wilco.newInstance(new Config());
         Queue queue = wilco.createQueue();
 
         AtomicInteger count = new AtomicInteger(0);
@@ -67,7 +67,6 @@ public class QueueTest {
     @Test
     public void channelSize() throws InterruptedException {
 
-        Wilco wilco = Wilco.newInstance(new Config());
         Queue queue = wilco.createQueue();
 
         CountDownLatch latch = new CountDownLatch(1);
@@ -104,8 +103,6 @@ public class QueueTest {
 
     @Test
     public void queueSuspendResume() throws InterruptedException {
-
-        Wilco wilco = Wilco.newInstance(new Config());
         Queue queue = wilco.createQueue();
 
         CountDownLatch latch = new CountDownLatch(2);
@@ -135,7 +132,6 @@ public class QueueTest {
     @Test
     public void closeChannel() throws InterruptedException {
 
-        Wilco wilco = Wilco.newInstance(new Config());
         Queue queue = wilco.createQueue();
 
         AtomicInteger count = new AtomicInteger(0);
@@ -167,7 +163,6 @@ public class QueueTest {
 
     @Test
     public void multipleCloseChannelConcurrent() throws InterruptedException {
-        Wilco wilco = Wilco.newInstance(new Config());
         Queue queue = wilco.createQueue();
 
         int loops = 20;
@@ -193,8 +188,21 @@ public class QueueTest {
     }
 
     @Test
+    @Ignore // only run manually to see whether Queue.finalize() works
+    public void finalizeQueues() throws InterruptedException {
+        int numOfQueues = 100;
+        Queue[] queues = new Queue[numOfQueues];
+        for (int i = 0; i < numOfQueues; i++) {
+            queues[0] = wilco.createQueue();
+        }
+
+        System.gc();
+        Thread.sleep(5000);
+    }
+
+
+    @Test
     public void registerDeadLetterQueue() throws InterruptedException {
-        Wilco wilco = Wilco.newInstance(new Config());
         Queue queue = wilco.createQueue();
 
         Consumer<DeadLetterEntry> deadLetterConsumer = (dle) -> {
@@ -216,7 +224,7 @@ public class QueueTest {
         Assert.assertEquals(1, wilco.getDeadLetterEntries().size());
 
         DeadLetterEntry entry = wilco.getDeadLetterEntries().get(0);
-        Assert.assertEquals("0", entry.getQueueId());
+        Assert.assertEquals("1", entry.getQueueId());
         Assert.assertEquals(ArithmeticException.class, entry.getException().getClass());
         Assert.assertTrue(entry.getStackTrace().startsWith("java.lang.ArithmeticException: / by zero"));
 
@@ -228,7 +236,6 @@ public class QueueTest {
 
     @Test(expected = DuplicateIdException.class)
     public void duplicateIdWithTaskQueues() {
-        Wilco wilco = Wilco.newInstance(new Config());
         String id = "foo";
         wilco.createQueue(id);
         wilco.createQueue(id);
@@ -236,7 +243,6 @@ public class QueueTest {
 
     @Test(expected = DuplicateIdException.class)
     public void duplicateIdWithListenableQueues() {
-        Wilco wilco = Wilco.newInstance(new Config());
         String id = "foo";
         wilco.createQueue(id);
         wilco.createQueue(id);
@@ -244,7 +250,6 @@ public class QueueTest {
 
     @Test(expected = DuplicateIdException.class)
     public void duplicateIdWithMixedQueues() {
-        Wilco wilco = Wilco.newInstance(new Config());
         String id = "foo";
         wilco.createQueue(id);
         wilco.createQueue(id);
@@ -252,7 +257,7 @@ public class QueueTest {
 
     @Test
     public void createAndSendListenerQueue() throws InterruptedException {
-        Wilco wilco = Wilco.newInstance(new Config());
+
         Channel<String> queue = wilco.createChannel();
 
         CountDownLatch latch = new CountDownLatch(1);
@@ -286,7 +291,7 @@ public class QueueTest {
 
     @Test
     public void createAndSendListenerQueueSingleCall() throws InterruptedException {
-        Wilco wilco = Wilco.newInstance(new Config());
+
         AtomicReference<String> value = new AtomicReference();
         CountDownLatch latch = new CountDownLatch(1);
 
