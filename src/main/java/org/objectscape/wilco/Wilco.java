@@ -2,8 +2,8 @@ package org.objectscape.wilco;
 
 import org.objectscape.wilco.core.QueueAnchor;
 import org.objectscape.wilco.core.WilcoCore;
-import org.objectscape.wilco.core.dlc.DeadLetterEntry;
-import org.objectscape.wilco.core.dlc.DeadLetterListener;
+import org.objectscape.wilco.core.dlq.DeadLetterEntry;
+import org.objectscape.wilco.core.dlq.DeadLetterListener;
 import org.objectscape.wilco.core.tasks.ShutdownTask;
 import org.objectscape.wilco.util.IdStore;
 
@@ -61,15 +61,19 @@ public class Wilco {
         return future;
     }
 
-    public void addDLCListener(DeadLetterListener deadLetterListener) {
-        core.addDLCListener(deadLetterListener);
+    public void addDLQListener(DeadLetterListener deadLetterListener) {
+        core.addDLQListener(deadLetterListener);
     }
 
-    public boolean removeDLCListener(DeadLetterListener deadLetterListener) {
-        return core.removeDLCListener(deadLetterListener);
+    public boolean removeDLQListener(DeadLetterListener deadLetterListener) {
+        return core.removeDLQListener(deadLetterListener);
     }
 
-    public List<DeadLetterEntry> getDeadLetterEntries() {
-        return core.getDeadLetterEntries();
+    public List<DeadLetterEntry> getDLQEntries() {
+        return core.getDLQEntries();
+    }
+
+    public void clearDLQ() {
+        core.clearDLQ();
     }
 }

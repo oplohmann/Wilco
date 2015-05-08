@@ -5,8 +5,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.objectscape.wilco.core.DuplicateIdException;
 import org.objectscape.wilco.core.QueueClosedException;
-import org.objectscape.wilco.core.dlc.DeadLetterEntry;
-import org.objectscape.wilco.core.dlc.DeadLetterListener;
+import org.objectscape.wilco.core.dlq.DeadLetterEntry;
+import org.objectscape.wilco.core.dlq.DeadLetterListener;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -210,7 +210,7 @@ public class QueueTest extends AbstractTest {
         };
 
         DeadLetterListener deadLetterListener = new DeadLetterListener(queue.getId(), ArithmeticException.class, deadLetterConsumer);
-        wilco.addDLCListener(deadLetterListener);
+        wilco.addDLQListener(deadLetterListener);
 
         CountDownLatch latch = new CountDownLatch(1);
 
@@ -221,16 +221,17 @@ public class QueueTest extends AbstractTest {
 
         latch.await();
 
-        Assert.assertEquals(1, wilco.getDeadLetterEntries().size());
+        Assert.assertEquals(1, wilco.getDLQEntries().size());
 
-        DeadLetterEntry entry = wilco.getDeadLetterEntries().get(0);
+        DeadLetterEntry entry = wilco.getDLQEntries().get(0);
         Assert.assertEquals("1", entry.getQueueId());
         Assert.assertEquals(ArithmeticException.class, entry.getException().getClass());
         Assert.assertTrue(entry.getStackTrace().startsWith("java.lang.ArithmeticException: / by zero"));
 
-        boolean deadLetterFilterFound = wilco.removeDLCListener(deadLetterListener);
+        boolean deadLetterFilterFound = wilco.removeDLQListener(deadLetterListener);
         Assert.assertTrue(deadLetterFilterFound);
 
+        wilco.clearDLQ();
         wilco.shutdown(10, TimeUnit.SECONDS);
     }
 

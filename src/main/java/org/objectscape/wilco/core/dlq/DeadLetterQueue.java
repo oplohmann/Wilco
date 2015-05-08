@@ -1,4 +1,4 @@
-package org.objectscape.wilco.core.dlc;
+package org.objectscape.wilco.core.dlq;
 
 import org.objectscape.wilco.util.CallerMustSynchronize;
 

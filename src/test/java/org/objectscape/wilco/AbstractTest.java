@@ -1,6 +1,7 @@
 package org.objectscape.wilco;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 
 import java.util.concurrent.ExecutionException;
@@ -26,6 +27,7 @@ public abstract class AbstractTest {
     @After
     public void shutdown() throws ExecutionException, InterruptedException {
         globalQueue.close();
+        Assert.assertTrue(wilco.getDLQEntries().isEmpty());
         wilco.shutdown();
         // TODO - wilco.shutdown().get(); does not work yet, because shutdown is not fully iplemented
     }

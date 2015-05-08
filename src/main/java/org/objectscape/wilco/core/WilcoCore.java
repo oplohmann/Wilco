@@ -1,9 +1,9 @@
 package org.objectscape.wilco.core;
 
 import org.objectscape.wilco.Config;
-import org.objectscape.wilco.core.dlc.DeadLetterEntry;
-import org.objectscape.wilco.core.dlc.DeadLetterListener;
-import org.objectscape.wilco.core.dlc.DeadLetterQueue;
+import org.objectscape.wilco.core.dlq.DeadLetterEntry;
+import org.objectscape.wilco.core.dlq.DeadLetterListener;
+import org.objectscape.wilco.core.dlq.DeadLetterQueue;
 import org.objectscape.wilco.core.tasks.CoreTask;
 import org.objectscape.wilco.core.tasks.ScheduledTask;
 import org.objectscape.wilco.util.TransferPriorityQueue;
@@ -62,15 +62,19 @@ public class WilcoCore {
         entryQueue.add(coreTask);
     }
 
-    public void addDLCListener(DeadLetterListener deadLetterListener) {
+    public void addDLQListener(DeadLetterListener deadLetterListener) {
         deadLetterQueue.addListener(deadLetterListener);
     }
 
-    public boolean removeDLCListener(DeadLetterListener deadLetterListener) {
+    public boolean removeDLQListener(DeadLetterListener deadLetterListener) {
         return deadLetterQueue.removeListener(deadLetterListener);
     }
 
-    public List<DeadLetterEntry> getDeadLetterEntries() {
+    public List<DeadLetterEntry> getDLQEntries() {
         return deadLetterQueue.getDeadLetterEntries();
+    }
+
+    public void clearDLQ() {
+        deadLetterQueue.clear();
     }
 }

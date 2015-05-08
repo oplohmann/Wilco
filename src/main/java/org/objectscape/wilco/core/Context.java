@@ -1,11 +1,10 @@
 package org.objectscape.wilco.core;
 
-import org.objectscape.wilco.core.dlc.DeadLetterQueue;
+import org.objectscape.wilco.core.dlq.DeadLetterQueue;
 import org.objectscape.wilco.core.tasks.CoreTask;
 import org.objectscape.wilco.util.TransferPriorityQueue;
 
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TransferQueue;
 
 /**
  * Created by plohmann on 19.02.2015.

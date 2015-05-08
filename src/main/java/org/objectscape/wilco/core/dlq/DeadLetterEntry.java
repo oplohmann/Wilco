@@ -1,4 +1,4 @@
-package org.objectscape.wilco.core.dlc;
+package org.objectscape.wilco.core.dlq;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

@@ -2,9 +2,9 @@ package org.objectscape.wilco;
 
 import junit.framework.Assert;
 import org.junit.Test;
-import org.objectscape.wilco.core.dlc.DeadLetterEntry;
-import org.objectscape.wilco.core.dlc.DeadLetterListener;
-import org.objectscape.wilco.core.dlc.DeadLetterQueue;
+import org.objectscape.wilco.core.dlq.DeadLetterEntry;
+import org.objectscape.wilco.core.dlq.DeadLetterListener;
+import org.objectscape.wilco.core.dlq.DeadLetterQueue;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;

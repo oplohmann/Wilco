@@ -45,12 +45,10 @@ public class PingPongTest extends AbstractTest {
 
         // table.send(new Ball()); // game on; toss the ball
 
-        Thread.sleep(2000);
-
         table.onReceive(ball -> {
             System.out.println("grab the ball and don't re-send it; game over");
             table.close(ball);
-        }).get(1, TimeUnit.SECONDS);  // timeout after 1 second indicates that something went wrong
+        }).get(2, TimeUnit.SECONDS);  // timeout after 1 second indicates that something went wrong
     }
 
     private void player(String name, Channel<Ball> table) {
