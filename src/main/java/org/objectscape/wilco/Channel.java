@@ -121,4 +121,12 @@ public class Channel<T> {
         closedFuture.get();
     }
 
+    protected void finalize() throws Throwable {
+        try {
+            queue.clear();
+        } finally {
+            super.finalize();
+        }
+    }
+
 }

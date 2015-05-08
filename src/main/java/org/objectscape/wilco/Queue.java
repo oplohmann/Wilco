@@ -18,7 +18,7 @@ public class Queue {
     private final static boolean QUEUE_OPEN_MARK = false;
     private final static boolean QUEUE_CLOSED_MARK = true;
 
-    final private QueueAnchor queueAnchor;
+    private QueueAnchor queueAnchor;
     private WilcoCore core;
 
     final private AtomicMarkableReference<Thread> guard = new AtomicMarkableReference(null, QUEUE_OPEN_MARK);
@@ -89,11 +89,6 @@ public class Queue {
         } finally {
             unlock();
         }
-
-        // Free ref to core to make this object reachable by the GC.
-        // NullPointerException because core is null will not happen, because for every call
-        // accessing core a QueueClosedException will be thrown before any method is invoked on core.
-        core = null;
     }
 
     private void lockedForExecute(Runnable runnable) {
@@ -146,18 +141,28 @@ public class Queue {
 
     private boolean lockForClosedOrOpen() {
         Thread currentThread = Thread.currentThread();
-        boolean mark = QUEUE_OPEN_MARK;
-        if(guard.isMarked()) {
-            mark = QUEUE_CLOSED_MARK;
-        }
-        while(!guard.compareAndSet(null, currentThread, mark, mark)) {
+        boolean expectedAndNewMark = guard.isMarked() ? QUEUE_CLOSED_MARK : QUEUE_OPEN_MARK;
+        while(!guard.compareAndSet(null, currentThread, expectedAndNewMark, expectedAndNewMark)) {
             otherThreadWon();
         }
-        return mark;
+        return expectedAndNewMark;
     }
 
     public boolean isClosed() {
         return guard.isMarked();
     }
 
+    protected void clear() {
+        // Free ref to core to make this object reachable by the GC.
+        core = null;
+        queueAnchor = null;
+    }
+
+    protected void finalize() throws Throwable {
+        try {
+            clear();
+        } finally {
+            super.finalize();
+        }
+    }
 }

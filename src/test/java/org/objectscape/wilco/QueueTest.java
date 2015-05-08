@@ -166,14 +166,15 @@ public class QueueTest {
     }
 
     @Test
-    public void doubleCloseChannel() throws InterruptedException {
+    public void multipleCloseChannelConcurrent() throws InterruptedException {
         Wilco wilco = Wilco.newInstance(new Config());
         Queue queue = wilco.createQueue();
 
-        CountDownLatch latch = new CountDownLatch(2);
+        int loops = 20;
+        CountDownLatch latch = new CountDownLatch(loops);
         AtomicInteger queueClosedExceptionCount = new AtomicInteger(0);
 
-        Thread closeThread1 = new Thread(()-> {
+        Runnable closeQueue = ()-> {
             try {
                 queue.close();
             } catch (Exception e) {
@@ -181,23 +182,14 @@ public class QueueTest {
             } finally {
                 latch.countDown();
             }
-        });
+        };
 
-        Thread closeThread2 = new Thread(()-> {
-            try {
-                queue.close();
-            } catch (Exception e) {
-                queueClosedExceptionCount.incrementAndGet();
-            } finally {
-                latch.countDown();
-            }
-        });
-
-        closeThread1.start();
-        closeThread2.start();
+        for (int i = 0; i < loops; i++) {
+            new Thread(closeQueue).start();
+        }
 
         latch.await(5, TimeUnit.SECONDS);
-        Assert.assertEquals(queueClosedExceptionCount.get(), 1);
+        Assert.assertEquals(1, loops - queueClosedExceptionCount.get());
     }
 
     @Test

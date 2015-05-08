@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created by plohmann on 23.04.2015.
@@ -14,15 +16,15 @@ import java.util.concurrent.ExecutionException;
 public class PipelineTest extends AbstractTest {
 
     @Test
-    public void generateSequence() throws ExecutionException, InterruptedException {
+    public void generateSequence() throws ExecutionException, InterruptedException, TimeoutException {
         // modeled after this sample in Go: https://blog.golang.org/pipelines
         List<Integer> ints = new Vector<>();
 
         Channel<Integer> out = sequence(sequence(sequence(generate(1, 2, 3, 4))));
         CompletableFuture<Integer> closeFuture = out.onReceive(n -> ints.add(n));
-        closeFuture.get();
+        closeFuture.get(5, TimeUnit.SECONDS);
 
-        Assert.assertArrayEquals(ints.toArray(), new Integer[] {1, 256, 6561, 65536});
+        Assert.assertArrayEquals(ints.toArray(), new Integer[]{1, 256, 6561, 65536});
     }
 
     private Channel<Integer> sequence(Channel<Integer> channel) throws InterruptedException {
