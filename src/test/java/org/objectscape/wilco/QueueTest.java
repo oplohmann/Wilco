@@ -9,6 +9,7 @@ import org.objectscape.wilco.core.dlq.DeadLetterEntry;
 import org.objectscape.wilco.core.dlq.DeadLetterListener;
 
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -102,6 +103,12 @@ public class QueueTest extends AbstractTest {
     }
 
     @Test
+    public void createQueue() {
+        Queue queue = wilco.createQueue();
+        wilco.shutdown(10, TimeUnit.SECONDS);
+    }
+
+    @Test
     public void queueSuspendResume() throws InterruptedException {
         Queue queue = wilco.createQueue();
 
@@ -112,7 +119,7 @@ public class QueueTest extends AbstractTest {
 
         queue.suspend();
 
-        queue.execute(()-> executionCount.incrementAndGet(), ()-> latch.countDown());
+        queue.execute(() -> executionCount.incrementAndGet(), () -> latch.countDown());
         queue.execute(()-> executionCount.incrementAndGet(), ()-> latch.countDown());
 
         Thread.sleep(100); // wait till tasks have ended up in task queue
@@ -204,9 +211,10 @@ public class QueueTest extends AbstractTest {
     @Test
     public void registerDeadLetterQueue() throws InterruptedException {
         Queue queue = wilco.createQueue();
+        AtomicBoolean deadLetterConsumerCalled = new AtomicBoolean(false);
 
         Consumer<DeadLetterEntry> deadLetterConsumer = (dle) -> {
-            System.out.println(dle.getStackTrace());
+            deadLetterConsumerCalled.compareAndSet(false, true);
         };
 
         DeadLetterListener deadLetterListener = new DeadLetterListener(queue.getId(), ArithmeticException.class, deadLetterConsumer);
@@ -221,6 +229,7 @@ public class QueueTest extends AbstractTest {
 
         latch.await();
 
+        Assert.assertTrue(deadLetterConsumerCalled.get());
         Assert.assertEquals(1, wilco.getDLQEntries().size());
 
         DeadLetterEntry entry = wilco.getDLQEntries().get(0);
@@ -244,13 +253,6 @@ public class QueueTest extends AbstractTest {
 
     @Test(expected = DuplicateIdException.class)
     public void duplicateIdWithListenableQueues() {
-        String id = "foo";
-        wilco.createQueue(id);
-        wilco.createQueue(id);
-    }
-
-    @Test(expected = DuplicateIdException.class)
-    public void duplicateIdWithMixedQueues() {
         String id = "foo";
         wilco.createQueue(id);
         wilco.createQueue(id);

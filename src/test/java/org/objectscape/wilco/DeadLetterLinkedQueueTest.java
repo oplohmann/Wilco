@@ -84,5 +84,6 @@ public class DeadLetterLinkedQueueTest {
         }
 
         Assert.assertEquals(1, dlq.getDeadLetterEntries().size());
+        dlq.clear();
     }
 }

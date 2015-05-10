@@ -4,6 +4,7 @@ import org.objectscape.wilco.core.QueueAnchor;
 import org.objectscape.wilco.core.WilcoCore;
 import org.objectscape.wilco.core.dlq.DeadLetterEntry;
 import org.objectscape.wilco.core.dlq.DeadLetterListener;
+import org.objectscape.wilco.core.tasks.CreateQueueTask;
 import org.objectscape.wilco.core.tasks.ShutdownTask;
 import org.objectscape.wilco.util.IdStore;
 
@@ -36,7 +37,7 @@ public class Wilco {
     }
 
     public Queue createQueue() {
-        return new Queue(new QueueAnchor(idStore.generateId()), core);
+        return createQueue(idStore.generateId());
     }
 
     public <T> Channel<T> createChannel() {
@@ -48,7 +49,10 @@ public class Wilco {
     }
 
     public Queue createQueue(String id) {
-        return new Queue(new QueueAnchor(idStore.compareAndSetId(id)), core);
+        String queueId = idStore.compareAndSetId(id);
+        Queue queue = new Queue(new QueueAnchor(queueId), core);
+        core.scheduleAdminTask(new CreateQueueTask(core, queue));
+        return queue;
     }
 
     public CompletableFuture<Void> shutdown() {
@@ -57,7 +61,7 @@ public class Wilco {
 
     public CompletableFuture<Void> shutdown(int duration, TimeUnit unit) {
         CompletableFuture<Void> future = new CompletableFuture<>();
-        core.scheduleAdminTask(new ShutdownTask(future, duration, unit));
+        core.scheduleAdminTask(new ShutdownTask(toString(), core, future, duration, unit));
         return future;
     }
 
