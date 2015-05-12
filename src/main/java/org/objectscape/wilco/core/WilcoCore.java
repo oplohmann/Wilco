@@ -84,6 +84,7 @@ public class WilcoCore {
 
     public boolean shutdown(long start, long duration, TimeUnit unit) {
         long durationInMillis = unit.toMillis(duration);
+        long foo;
         long end = start + durationInMillis;
         LOG.info("Shutting down. Sending " + queuesById.size() + " queues the close signal");
         List<Queue> nonEmptyQueues = new ArrayList<>();
