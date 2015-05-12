@@ -1,6 +1,7 @@
 package org.objectscape.wilco;
 
 import junit.framework.Assert;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.objectscape.wilco.core.DuplicateIdException;
@@ -311,5 +312,11 @@ public class QueueTest extends AbstractTest {
         Assert.assertFalse(timeOut);
 
         Assert.assertEquals(anything, value.get());
+    }
+
+    @Before
+    public void startUp() {
+        super.startUp();
+        shutdown = false;
     }
 }

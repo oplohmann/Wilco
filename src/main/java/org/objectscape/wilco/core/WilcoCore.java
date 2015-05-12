@@ -82,7 +82,8 @@ public class WilcoCore {
         return queuesById.remove(queueId) != null;
     }
 
-    public boolean shutdown(long start, long duration, TimeUnit unit) {
+    public boolean prepareShutdown(long duration, TimeUnit unit) {
+        long start = System.currentTimeMillis();
         long durationInMillis = unit.toMillis(duration);
         long end = start + durationInMillis;
         LOG.info("Shutting down. Sending " + queuesById.size() + " queues the close signal");
@@ -102,7 +103,6 @@ public class WilcoCore {
             }
         }
 
-        queuesById.clear();
         long buffer = Math.round(durationInMillis * 0.1);
 
         while (true) {
@@ -120,6 +120,12 @@ public class WilcoCore {
                 return false;
             }
         }
+    }
+
+    public int commitShutdown() {
+        int numberOfRunningTasks = queuesById.values().stream().mapToInt(Queue::size).sum();
+        queuesById.clear();
+        return numberOfRunningTasks;
     }
 
 }
