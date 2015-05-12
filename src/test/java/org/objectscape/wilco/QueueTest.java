@@ -6,6 +6,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.objectscape.wilco.core.DuplicateIdException;
 import org.objectscape.wilco.core.QueueClosedException;
+import org.objectscape.wilco.core.ShutdownException;
 import org.objectscape.wilco.core.dlq.DeadLetterEntry;
 import org.objectscape.wilco.core.dlq.DeadLetterListener;
 
@@ -107,6 +108,13 @@ public class QueueTest extends AbstractTest {
     public void createQueue() {
         Queue queue = wilco.createQueue();
         wilco.shutdown(10, TimeUnit.SECONDS);
+    }
+
+    @Test(expected = ShutdownException.class)
+    public void createChannelAfterShutdown() {
+        wilco.shutdown();
+        shutdown = false;
+        wilco.createChannel();
     }
 
     @Test
