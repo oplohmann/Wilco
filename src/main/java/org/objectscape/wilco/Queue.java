@@ -36,6 +36,10 @@ public class Queue {
         return queueAnchor.userTasksCount();
     }
 
+    public boolean isEmpty() {
+        return queueAnchor.userTasksCount() == 0;
+    }
+
     public void execute(Runnable runnable) {
         lockedForExecuteUser(() -> core.scheduleUserTask(new ScheduledTask(queueAnchor, runnable)));
     }
@@ -85,7 +89,7 @@ public class Queue {
 
         try {
             lock(QUEUE_CLOSED_MARK);
-            core.scheduleAdminTask(new CloseQueueTask());
+            core.scheduleAdminTask(new CloseQueueTask(core, getId()));
         } finally {
             unlock();
         }

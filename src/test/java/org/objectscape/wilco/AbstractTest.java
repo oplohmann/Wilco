@@ -26,17 +26,10 @@ public abstract class AbstractTest {
 
     @After
     public void shutdown() throws ExecutionException, InterruptedException {
-        if(!isShutdown()) {
-            return;
-        }
         globalQueue.close();
         Assert.assertTrue(wilco.getDLQEntries().isEmpty());
         wilco.shutdown();
         // TODO - wilco.shutdown().get(); does not work yet, because shutdown is not fully iplemented
-    }
-
-    protected boolean isShutdown() {
-        return true;
     }
 
 }
