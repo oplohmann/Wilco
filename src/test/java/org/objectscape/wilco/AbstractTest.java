@@ -13,6 +13,7 @@ public abstract class AbstractTest {
 
     protected Wilco wilco;
     protected Queue globalQueue;
+    protected boolean shutdown = true;
 
     public void async(Runnable runnable) {
         globalQueue.execute(runnable);
@@ -26,10 +27,13 @@ public abstract class AbstractTest {
 
     @After
     public void shutdown() throws ExecutionException, InterruptedException {
+        if(!shutdown) {
+            return;
+        }
         globalQueue.close();
         Assert.assertTrue(wilco.getDLQEntries().isEmpty());
         wilco.shutdown();
-        // TODO - wilco.shutdown().get(); does not work yet, because shutdown is not fully iplemented
+        // TODO - wilco.prepareShutdown().get(); does not work yet, because prepareShutdown is not fully iplemented
     }
 
 }

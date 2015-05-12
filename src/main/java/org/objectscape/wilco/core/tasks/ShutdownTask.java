@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -18,13 +17,14 @@ public class ShutdownTask extends CoreTask {
 
     private String wilco;
     private WilcoCore core;
-    private Future<Void> doneSignal;
+    private CompletableFuture<Integer> doneSignal;
     final private long duration;
     final private TimeUnit unit;
 
-    public ShutdownTask(String wilco, WilcoCore core, CompletableFuture<Void> doneSignal, int duration, TimeUnit unit) {
+    public ShutdownTask(String wilco, WilcoCore core, CompletableFuture<Integer> doneSignal, int duration, TimeUnit unit) {
         super();
         this.wilco = wilco;
+        this.core = core;
         this.doneSignal = doneSignal;
         this.duration = duration;
         this.unit = unit;
@@ -32,15 +32,19 @@ public class ShutdownTask extends CoreTask {
 
     @Override
     public boolean run(Context context) {
-        long start = System.currentTimeMillis();
-        core.shutdown(start, Math.round(duration * 0.75), unit);
+        int numOfRunningTasks = -1;
+        core.prepareShutdown(Math.round(duration * 0.75), unit);
         context.getExecutor().shutdown();
         try {
             if(duration > 0) {
                 context.getExecutor().awaitTermination(duration, unit);
             }
+            numOfRunningTasks = core.commitShutdown();
         } catch (InterruptedException e) {
             context.addToDeadLetterQueue(null, e);
+        }
+        finally {
+            doneSignal.complete(numOfRunningTasks);
         }
         return false;
     }

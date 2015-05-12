@@ -23,7 +23,7 @@ public class PingPongTest extends AbstractTest {
 
         table.send(new Ball()); // game on; toss the ball
 
-        Thread.sleep(2000);
+        Thread.sleep(1000);
 
         table.onReceive(ball -> {
             System.out.println("grab the ball and don't re-send it; game over");

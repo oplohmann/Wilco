@@ -7,6 +7,8 @@ import org.objectscape.wilco.core.tasks.CloseQueueTask;
 import org.objectscape.wilco.core.tasks.ResumeChannelTask;
 import org.objectscape.wilco.core.tasks.ScheduledTask;
 import org.objectscape.wilco.core.tasks.SuspendChannelTask;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicMarkableReference;
 
@@ -15,13 +17,15 @@ import java.util.concurrent.atomic.AtomicMarkableReference;
  */
 public class Queue {
 
+    private final static Logger LOG = LoggerFactory.getLogger(Queue.class);
+
     private final static boolean QUEUE_OPEN_MARK = false;
     private final static boolean QUEUE_CLOSED_MARK = true;
 
     private QueueAnchor queueAnchor;
     private WilcoCore core;
 
-    final private AtomicMarkableReference<Thread> guard = new AtomicMarkableReference(null, QUEUE_OPEN_MARK);
+    final private AtomicMarkableReference<Thread> closeGuard = new AtomicMarkableReference(null, QUEUE_OPEN_MARK);
 
     public Queue(QueueAnchor queueAnchor, WilcoCore core) {
         this.queueAnchor = queueAnchor;
@@ -79,8 +83,8 @@ public class Queue {
 
         boolean wasAlreadyClosed = true;
 
-        while(!guard.isMarked()) {
-            wasAlreadyClosed =! guard.attemptMark(null, QUEUE_CLOSED_MARK);
+        while(!closeGuard.isMarked()) {
+            wasAlreadyClosed =! closeGuard.attemptMark(null, QUEUE_CLOSED_MARK);
         }
 
         if(wasAlreadyClosed) {
@@ -118,42 +122,36 @@ public class Queue {
 
     private void unlock() {
         // leave critical section
-        if(guard.isMarked()) {
-            guard.set(null, QUEUE_CLOSED_MARK);
+        if(closeGuard.isMarked()) {
+            closeGuard.set(null, QUEUE_CLOSED_MARK);
         } else {
-            guard.set(null, QUEUE_OPEN_MARK);
+            closeGuard.set(null, QUEUE_OPEN_MARK);
         }
 
     }
 
     private void lock(boolean expectedAndNewMark) {
         Thread currentThread = Thread.currentThread();
-        while(!guard.compareAndSet(null, currentThread, expectedAndNewMark, expectedAndNewMark)) {
-            if(guard.isMarked()) {
+        while(!closeGuard.compareAndSet(null, currentThread, expectedAndNewMark, expectedAndNewMark)) {
+            if(closeGuard.isMarked()) {
                 throw new QueueClosedException("Queue " + getId() + " closed");
             } else {
-                otherThreadWon();
+                LOG.debug("other thread won in Queue.close");
             }
         }
     }
 
-    private void otherThreadWon() {
-        // other thread won, keep spinning to obtain the lock
-        // for testing/debugging
-        // System.out.println("other thread won");
-    }
-
     private boolean lockForClosedOrOpen() {
         Thread currentThread = Thread.currentThread();
-        boolean expectedAndNewMark = guard.isMarked() ? QUEUE_CLOSED_MARK : QUEUE_OPEN_MARK;
-        while(!guard.compareAndSet(null, currentThread, expectedAndNewMark, expectedAndNewMark)) {
-            otherThreadWon();
+        boolean expectedAndNewMark = closeGuard.isMarked() ? QUEUE_CLOSED_MARK : QUEUE_OPEN_MARK;
+        while(!closeGuard.compareAndSet(null, currentThread, expectedAndNewMark, expectedAndNewMark)) {
+            LOG.debug("other thread won in Queue.executeIgnoreClose");
         }
         return expectedAndNewMark;
     }
 
     public boolean isClosed() {
-        return guard.isMarked();
+        return closeGuard.isMarked();
     }
 
     protected void clear() {
