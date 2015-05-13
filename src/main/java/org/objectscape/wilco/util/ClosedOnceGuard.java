@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicMarkableReference;
 /**
  * Created by plohmann on 13.05.2015.
  */
-public class ClosedOnceForeverGuard {
+public class ClosedOnceGuard {
 
     private final static boolean OPEN_MARK = false;
     private final static boolean CLOSED_MARK = true;
@@ -84,6 +84,25 @@ public class ClosedOnceForeverGuard {
         try {
             boolean internalMark = (mark.equals(Mark.OPEN)) ? OPEN_MARK : CLOSED_MARK;
             if(!lock(internalMark)) {
+                return false;
+            }
+            runnable.run();
+            return true;
+        }
+        catch(RuntimeException e) {
+            throw e;
+        }
+        finally {
+            unlock();
+        }
+    }
+
+    public boolean runIfClosed(Runnable runnable) {
+        if(!isClosed()) {
+            return false;
+        }
+        try {
+            if(!lock(CLOSED_MARK)) {
                 return false;
             }
             runnable.run();
