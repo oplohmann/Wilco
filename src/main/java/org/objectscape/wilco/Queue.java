@@ -7,10 +7,9 @@ import org.objectscape.wilco.core.tasks.CloseQueueTask;
 import org.objectscape.wilco.core.tasks.ResumeChannelTask;
 import org.objectscape.wilco.core.tasks.ScheduledTask;
 import org.objectscape.wilco.core.tasks.SuspendChannelTask;
+import org.objectscape.wilco.util.ClosedOnceGuard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.atomic.AtomicMarkableReference;
 
 /**
  * Created by plohmann on 19.02.2015.
@@ -19,13 +18,10 @@ public class Queue {
 
     private final static Logger LOG = LoggerFactory.getLogger(Queue.class);
 
-    private final static boolean QUEUE_OPEN_MARK = false;
-    private final static boolean QUEUE_CLOSED_MARK = true;
-
     private QueueAnchor queueAnchor;
     private WilcoCore core;
 
-    final private AtomicMarkableReference<Thread> closeGuard = new AtomicMarkableReference(null, QUEUE_OPEN_MARK);
+    private ClosedOnceGuard closedGuard = new ClosedOnceGuard();
 
     public Queue(QueueAnchor queueAnchor, WilcoCore core) {
         this.queueAnchor = queueAnchor;
@@ -54,13 +50,8 @@ public class Queue {
 
     protected void executeIgnoreClose(Runnable runnable) {
         // Does not check whether closed. Therefore also no QueueClosedException is thrown
-        try {
-            lockForClosedOrOpen();
-            core.scheduleUserTask(new ScheduledTask(queueAnchor, runnable));
-        }
-        finally {
-            unlock();
-        }
+        ClosedOnceGuard.Mark expectedAndNewMark = closedGuard.isClosed() ? ClosedOnceGuard.Mark.CLOSED : ClosedOnceGuard.Mark.CLOSED;
+        closedGuard.run(expectedAndNewMark, () -> core.scheduleUserTask(new ScheduledTask(queueAnchor, runnable)));
     }
 
     public void suspend() {
@@ -80,78 +71,31 @@ public class Queue {
     }
 
     public void close() {
-
-        boolean wasAlreadyClosed = true;
-
-        while(!closeGuard.isMarked()) {
-            wasAlreadyClosed =! closeGuard.attemptMark(null, QUEUE_CLOSED_MARK);
-        }
-
-        if(wasAlreadyClosed) {
+        boolean wasOpen = closedGuard.closeAndRun(() -> core.scheduleAdminTask(new CloseQueueTask(core, getId())));
+        if(!wasOpen) {
             throw new QueueClosedException("Queue " + getId() + " already closed");
-        }
-
-        try {
-            lock(QUEUE_CLOSED_MARK);
-            core.scheduleAdminTask(new CloseQueueTask(core, getId()));
-        } finally {
-            unlock();
         }
     }
 
     private void lockedForExecute(Runnable runnable) {
-        try {
-            lock(QUEUE_OPEN_MARK);
-            runnable.run();
-        }
-        finally {
-            unlock();
+        boolean wasOpen = closedGuard.runIfOpen(runnable);
+        if(!wasOpen) {
+            throw new QueueClosedException("Queue " + getId() + " closed");
         }
     }
 
     private void lockedForExecuteUser(Runnable runnable) {
-        try {
-            lock(QUEUE_OPEN_MARK);
+        Runnable userRunnable = ()-> {
             queueAnchor.incrementSize();
             runnable.run();
+        };
+        if(!closedGuard.runIfOpen(userRunnable)) {
+            throw new QueueClosedException("Queue " + getId() + " closed");
         }
-        finally {
-            unlock();
-        }
-    }
-
-    private void unlock() {
-        // leave critical section
-        if(closeGuard.isMarked()) {
-            closeGuard.set(null, QUEUE_CLOSED_MARK);
-        } else {
-            closeGuard.set(null, QUEUE_OPEN_MARK);
-        }
-
-    }
-
-    private void lock(boolean expectedAndNewMark) {
-        Thread currentThread = Thread.currentThread();
-        while(!closeGuard.compareAndSet(null, currentThread, expectedAndNewMark, expectedAndNewMark)) {
-            if(closeGuard.isMarked()) {
-                throw new QueueClosedException("Queue " + getId() + " closed");
-            } else {
-                LOG.debug("other thread won in Queue.close");
-            }
-        }
-    }
-
-    private boolean lockForClosedOrOpen() {
-        Thread currentThread = Thread.currentThread();
-        boolean expectedAndNewMark = closeGuard.isMarked() ? QUEUE_CLOSED_MARK : QUEUE_OPEN_MARK;
-        while(!closeGuard.compareAndSet(null, currentThread, expectedAndNewMark, expectedAndNewMark)) {
-            LOG.debug("other thread won in Queue.executeIgnoreClose");
-        }
-        return expectedAndNewMark;
     }
 
     public boolean isClosed() {
-        return closeGuard.isMarked();
+        return closedGuard.isClosed();
     }
 
     protected void clear() {
