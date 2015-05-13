@@ -23,6 +23,12 @@ public class ShutdownTest extends AbstractTest {
     }
 
     @Test(expected = ShutdownException.class)
+    public void onlySingleShutdown() {
+        wilco.shutdown();
+        wilco.shutdown();
+    }
+
+    @Test(expected = ShutdownException.class)
     public void cannotCreateQueueAfterShutdown() throws InterruptedException, ExecutionException, TimeoutException {
         CompletableFuture<Integer> numberOfRunningTasksAfterShutdown = wilco.shutdown(5, TimeUnit.SECONDS);
         Assert.assertTrue(wilco.getDLQEntries().isEmpty());
