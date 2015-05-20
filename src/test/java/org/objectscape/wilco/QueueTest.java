@@ -10,6 +10,8 @@ import org.objectscape.wilco.core.ShutdownException;
 import org.objectscape.wilco.core.dlq.DeadLetterEntry;
 import org.objectscape.wilco.core.dlq.DeadLetterListener;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -322,9 +324,55 @@ public class QueueTest extends AbstractTest {
         Assert.assertEquals(anything, value.get());
     }
 
+    @Test
+    public void equals() {
+        Queue queue1 = wilco.createQueue();
+        Queue queue2 = wilco.createQueue();
+
+        Assert.assertEquals(queue1, queue1);
+        Assert.assertEquals(queue2, queue2);
+        Assert.assertFalse(queue1.equals(queue2));
+        Assert.assertFalse(queue1.getId().equals(queue2.getId()));
+
+        Channel<String> channel1 = wilco.createChannel();
+        Channel<String> channel2 = wilco.createChannel();
+
+        Assert.assertEquals(channel1, channel1);
+        Assert.assertEquals(channel2, channel2);
+        Assert.assertFalse(channel1.equals(channel2));
+    }
+
+    @Test
+    public void hash() {
+        Queue queue1 = wilco.createQueue();
+        Queue queue2 = wilco.createQueue();
+
+        Assert.assertFalse(queue1.hashCode() == queue2.hashCode());
+
+        Set<Queue> queues = new HashSet<>();
+        queues.add(queue1);
+        queues.add(queue2);
+        queues.add(queue1);
+        queues.add(queue2);
+
+        Assert.assertEquals(2, queues.size());
+
+        Channel<String> channel1 = wilco.createChannel();
+        Channel<String> channel2 = wilco.createChannel();
+
+        Assert.assertFalse(channel1.hashCode() == channel2.hashCode());
+
+        Set<Channel> channels = new HashSet<>();
+        channels.add(channel1);
+        channels.add(channel2);
+        channels.add(channel1);
+        channels.add(channel2);
+    }
+
     @Before
     public void startUp() {
         super.startUp();
         shutdown = false;
     }
+
 }

@@ -1,8 +1,8 @@
 package org.objectscape.wilco.core.tasks;
 
+import org.objectscape.wilco.core.ShutdownResponse;
 import org.objectscape.wilco.core.WilcoCore;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -12,12 +12,12 @@ import java.util.concurrent.TimeUnit;
 public abstract class ShutdownTask extends CoreTask {
 
     final protected WilcoCore core;
-    final protected CompletableFuture<List<Runnable>> doneSignal;
+    final protected CompletableFuture<ShutdownResponse> doneSignal;
     final protected long duration;
     final protected TimeUnit unit;
     final protected long start;
 
-    public ShutdownTask(WilcoCore core, CompletableFuture<List<Runnable>> doneSignal, long duration, TimeUnit unit, long start) {
+    public ShutdownTask(WilcoCore core, CompletableFuture<ShutdownResponse> doneSignal, long duration, TimeUnit unit, long start) {
         this.core = core;
         this.doneSignal = doneSignal;
         this.duration = duration;

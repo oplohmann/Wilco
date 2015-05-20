@@ -129,4 +129,23 @@ public class Channel<T> {
         }
     }
 
+    @Override
+    public boolean equals(Object otherObject) {
+        if (this == otherObject)
+            return true;
+        if (otherObject == null || getClass() != otherObject.getClass())
+            return false;
+
+        Channel<?> channel = (Channel<?>) otherObject;
+
+        return queue.equals(channel.queue);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = queue.hashCode();
+        result = 31 * result + onCloseRef.hashCode();
+        return result;
+    }
 }

@@ -1,6 +1,7 @@
 package org.objectscape.wilco.core.tasks;
 
 import org.objectscape.wilco.core.Context;
+import org.objectscape.wilco.core.ShutdownResponse;
 import org.objectscape.wilco.core.WilcoCore;
 import org.objectscape.wilco.util.QueueAnchorPair;
 
@@ -17,7 +18,7 @@ public class RunEmptyShutdownTask extends ShutdownTask {
 
     final private List<QueueAnchorPair> allQueues;
 
-    public RunEmptyShutdownTask(WilcoCore core, CompletableFuture<List<Runnable>> doneSignal, long duration, TimeUnit unit, long start, List<QueueAnchorPair> allQueues) {
+    public RunEmptyShutdownTask(WilcoCore core, CompletableFuture<ShutdownResponse> doneSignal, long duration, TimeUnit unit, long start, List<QueueAnchorPair> allQueues) {
         super(core, doneSignal, duration, unit, start);
         this.allQueues = allQueues;
     }

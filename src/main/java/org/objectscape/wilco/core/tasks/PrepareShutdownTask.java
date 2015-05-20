@@ -1,6 +1,7 @@
 package org.objectscape.wilco.core.tasks;
 
 import org.objectscape.wilco.core.Context;
+import org.objectscape.wilco.core.ShutdownResponse;
 import org.objectscape.wilco.core.WilcoCore;
 import org.objectscape.wilco.util.QueueAnchorPair;
 import org.slf4j.Logger;
@@ -19,7 +20,7 @@ public class PrepareShutdownTask extends ShutdownTask {
 
     private String wilco;
 
-    public PrepareShutdownTask(String wilco, WilcoCore core, CompletableFuture<List<Runnable>> doneSignal, long duration, TimeUnit unit) {
+    public PrepareShutdownTask(String wilco, WilcoCore core, CompletableFuture<ShutdownResponse> doneSignal, long duration, TimeUnit unit) {
         super(core, doneSignal, duration, unit, System.currentTimeMillis());
         this.wilco = wilco;
     }

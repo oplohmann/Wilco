@@ -27,7 +27,7 @@ public class ShutdownCallback {
 
     }
 
-    public boolean isShutdownComplete() {
+    public boolean isShutdownCompleted() {
         return false;
     }
 

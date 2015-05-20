@@ -5,8 +5,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.objectscape.wilco.core.ShutdownException;
+import org.objectscape.wilco.core.ShutdownResponse;
 
-import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -17,9 +17,9 @@ public class ShutdownTest extends AbstractTest {
 
     @Test
     public void basicShutdown() throws InterruptedException, ExecutionException, TimeoutException {
-        CompletableFuture<List<Runnable>> numberOfRunningTasksAfterShutdown = wilco.shutdown(5, TimeUnit.SECONDS);
+        CompletableFuture<ShutdownResponse> shutdownResponse = wilco.shutdown(5, TimeUnit.SECONDS);
         Assert.assertTrue(wilco.getDLQEntries().isEmpty());
-        int returnValue = numberOfRunningTasksAfterShutdown.get().size();
+        int returnValue = shutdownResponse.get().getNotCompletedQueues().size();
         Assert.assertEquals(0, returnValue);
         Assert.assertFalse(wilco.isSchedulerRunning());
     }
@@ -32,9 +32,9 @@ public class ShutdownTest extends AbstractTest {
 
     @Test(expected = ShutdownException.class)
     public void cannotCreateQueueAfterShutdown() throws InterruptedException, ExecutionException, TimeoutException {
-        CompletableFuture<List<Runnable>> numberOfRunningTasksAfterShutdown = wilco.shutdown(5, TimeUnit.SECONDS);
+        CompletableFuture<ShutdownResponse> shutdownResponse = wilco.shutdown(5, TimeUnit.SECONDS);
         Assert.assertTrue(wilco.getDLQEntries().isEmpty());
-        int returnValue = numberOfRunningTasksAfterShutdown.get().size();
+        int returnValue = shutdownResponse.get().getNotCompletedQueues().size();
         Assert.assertEquals(0, returnValue);
         wilco.createQueue();
     }
@@ -67,9 +67,9 @@ public class ShutdownTest extends AbstractTest {
 
         long totalTaskExecutionDuration = numOfQueues * numOfTasks * taskBusyDurationInMillis;
 
-        CompletableFuture<List<Runnable>> numOfRunningTasksAfterShutdown = wilco.shutdown(totalTaskExecutionDuration * 2, TimeUnit.MILLISECONDS);
+        CompletableFuture<ShutdownResponse> shutdownResponse = wilco.shutdown(totalTaskExecutionDuration * 2, TimeUnit.MILLISECONDS);
         Assert.assertTrue(wilco.getDLQEntries().isEmpty());
-        int returnValue = numOfRunningTasksAfterShutdown.get().size();
+        int returnValue = shutdownResponse.get().getNotCompletedQueues().size();
         Assert.assertEquals(0, returnValue);
         Assert.assertEquals(numOfTasks * numOfQueues, counter.get());
         Assert.assertFalse(wilco.isSchedulerRunning());
@@ -87,15 +87,16 @@ public class ShutdownTest extends AbstractTest {
         Queue queue = wilco.createQueue();
         queue.execute(task);
 
-        CompletableFuture<List<Runnable>> numberOfRunningTasksAfterShutdown = wilco.shutdown(2, TimeUnit.SECONDS);
-        numberOfRunningTasksAfterShutdown.get(); // wait till shutdown has completed
+        CompletableFuture<ShutdownResponse> shutdownResponse = wilco.shutdown(2, TimeUnit.SECONDS);
+        shutdownResponse.get(); // wait till shutdown has completed
         latch.countDown();
         Assert.assertTrue(wilco.getDLQEntries().isEmpty());
-        int returnValue = numberOfRunningTasksAfterShutdown.get().size();
+        int returnValue = shutdownResponse.get().getNotCompletedQueues().size();
         Assert.assertEquals(1, returnValue);
+        Assert.assertFalse(shutdownResponse.get().isShutdownCompleted());
 
         // wilco.shutdown really returned the same Runnable as not finished when shutting down?
-        Assert.assertTrue(numberOfRunningTasksAfterShutdown.get().get(0) == task);
+        Assert.assertTrue(shutdownResponse.get().getNotCompletedRunnables().iterator().next() == task);
     }
 
     @Ignore
@@ -132,7 +133,7 @@ public class ShutdownTest extends AbstractTest {
                 totalTaskExecutionDuration / 10,
                 TimeUnit.MILLISECONDS,
                 (shutdownCallback -> {
-                    if(shutdownCallback.isShutdownComplete()) {
+                    if(shutdownCallback.isShutdownCompleted()) {
                         latch.countDown();
                         return;
                     }

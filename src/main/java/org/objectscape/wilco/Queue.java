@@ -111,4 +111,26 @@ public class Queue {
             super.finalize();
         }
     }
+
+    @Override
+    public boolean equals(Object otherObject) {
+        if (this == otherObject)
+            return true;
+        if (otherObject == null || getClass() != otherObject.getClass())
+            return false;
+
+        Queue queue = (Queue) otherObject;
+
+        if((queueAnchor == queue.queueAnchor) && (core == queue.core))
+            return getId().equals(queue.getId());
+
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = queueAnchor.hashCode();
+        result = 31 * result + core.hashCode() + getId().hashCode();
+        return result;
+    }
 }

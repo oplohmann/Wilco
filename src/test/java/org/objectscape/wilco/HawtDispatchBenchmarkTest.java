@@ -17,7 +17,6 @@ public class HawtDispatchBenchmarkTest {
     @Test
     public void basicBenchmark() throws InterruptedException
     {
-        int availableProcessors = Runtime.getRuntime().availableProcessors();
         int numOfQueues = 10;
         DispatchQueue[] queues = new DispatchQueue[numOfQueues];
 

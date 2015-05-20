@@ -1,9 +1,6 @@
 package org.objectscape.wilco;
 
-import org.objectscape.wilco.core.QueueAnchor;
-import org.objectscape.wilco.core.ShutdownCallback;
-import org.objectscape.wilco.core.ShutdownException;
-import org.objectscape.wilco.core.WilcoCore;
+import org.objectscape.wilco.core.*;
 import org.objectscape.wilco.core.dlq.DeadLetterEntry;
 import org.objectscape.wilco.core.dlq.DeadLetterListener;
 import org.objectscape.wilco.core.tasks.CreateQueueTask;
@@ -79,16 +76,16 @@ public class Wilco {
         return queueRef.get();
     }
 
-    public CompletableFuture<List<Runnable>> shutdown() {
+    public CompletableFuture<ShutdownResponse> shutdown() {
         return shutdown(10, TimeUnit.SECONDS);
     }
 
-    public CompletableFuture<List<Runnable>> shutdown(long duration, TimeUnit unit) {
+    public CompletableFuture<ShutdownResponse> shutdown(long duration, TimeUnit unit) {
         if(unit == null) {
             throw new NullPointerException("unit null");
         }
 
-        CompletableFuture<List<Runnable>> future = new CompletableFuture<>();
+        CompletableFuture<ShutdownResponse> future = new CompletableFuture<>();
 
         boolean guardWasOpen = shutdownGuard.closeAndRun(()->
             core.scheduleAdminTask(new PrepareShutdownTask(toString(), core, future, duration, unit))
