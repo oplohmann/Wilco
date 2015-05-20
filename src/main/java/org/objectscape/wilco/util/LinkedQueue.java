@@ -1,5 +1,7 @@
 package org.objectscape.wilco.util;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
@@ -98,4 +100,13 @@ public class LinkedQueue<T> {
         return size == 0;
     }
 
+    public List<T> toList() {
+        List<T> list = new ArrayList<>(size);
+        Node<T> node = head;
+        while (node != null) {
+            list.add(node.getContents());
+            node = node.getNext();
+        }
+        return list;
+    }
 }

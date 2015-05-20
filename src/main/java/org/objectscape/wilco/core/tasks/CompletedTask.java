@@ -9,14 +9,6 @@ import org.objectscape.wilco.core.ScheduledRunnable;
  */
 public class CompletedTask extends QueueAnchorTask {
 
-    public CompletedTask(QueueAnchor anchor, Runnable userRunnable) {
-        super(anchor, userRunnable);
-    }
-
-    public CompletedTask(QueueAnchor queueAnchor, Runnable userRunnable, Runnable whenDoneRunnable) {
-        super(queueAnchor, userRunnable, whenDoneRunnable);
-    }
-
     public CompletedTask(QueueAnchor queueAnchor, ScheduledRunnable nextRunnable) {
         super(queueAnchor, nextRunnable);
     }

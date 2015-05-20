@@ -33,7 +33,7 @@ public abstract class AbstractTest {
         globalQueue.close();
         Assert.assertTrue(wilco.getDLQEntries().isEmpty());
         wilco.shutdown();
-        // TODO - wilco.prepareShutdown().get(); does not work yet, because prepareShutdown is not fully iplemented
+        // TODO - wilco.closeAllQueues().get(); does not work yet, because closeAllQueues is not fully iplemented
     }
 
 }

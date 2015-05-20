@@ -2,6 +2,8 @@ package org.objectscape.wilco.core.tasks;
 
 import org.objectscape.wilco.core.Context;
 
+import java.util.Optional;
+
 /**
  *
  * Using a CoreTask over a Runnable since the JVM can more efficiently invoke
@@ -19,8 +21,12 @@ public abstract class CoreTask {
 
     public abstract int priority();
 
-    public String queueId() {
-        return null;
+    public Optional<String> queueId() {
+        return Optional.empty();
+    }
+
+    public Optional<Runnable> getUserRunnable() {
+        return Optional.empty();
     }
 
 }

@@ -28,4 +28,8 @@ public class ScheduledRunnable {
         }
         whenDoneRunnable.run();
     }
+
+    public Runnable getRunnable() {
+        return runnable;
+    }
 }

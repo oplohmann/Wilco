@@ -2,19 +2,20 @@ package org.objectscape.wilco.core.dlq;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Optional;
 
 /**
  * Created by plohmann on 25.03.2015.
  */
 public class DeadLetterEntry {
 
-    final private String queueId;
+    final private Optional<String> queueId;
     final private Throwable exception;
     final private String stackTrace;
     final private long creationTime = System.currentTimeMillis();
 
     public DeadLetterEntry(String queueId, Throwable exception) {
-        this.queueId = queueId;
+        this.queueId = Optional.of(queueId);
         this.exception = exception;
         if(exception != null) {
             StringWriter sw = new StringWriter();
@@ -26,7 +27,7 @@ public class DeadLetterEntry {
         }
     }
 
-    public String getQueueId() {
+    public Optional<String> getQueueId() {
         return queueId;
     }
 

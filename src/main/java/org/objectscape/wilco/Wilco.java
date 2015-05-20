@@ -1,19 +1,24 @@
 package org.objectscape.wilco;
 
 import org.objectscape.wilco.core.QueueAnchor;
+import org.objectscape.wilco.core.ShutdownCallback;
 import org.objectscape.wilco.core.ShutdownException;
 import org.objectscape.wilco.core.WilcoCore;
 import org.objectscape.wilco.core.dlq.DeadLetterEntry;
 import org.objectscape.wilco.core.dlq.DeadLetterListener;
 import org.objectscape.wilco.core.tasks.CreateQueueTask;
-import org.objectscape.wilco.core.tasks.ShutdownTask;
+import org.objectscape.wilco.core.tasks.PrepareShutdownTask;
+import org.objectscape.wilco.util.ClosedOnceGuard;
 import org.objectscape.wilco.util.IdStore;
+import org.objectscape.wilco.util.QueueAnchorPair;
+import org.objectscape.wilco.util.Ref;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * Created by plohmann on 19.02.2015.
@@ -24,9 +29,8 @@ public class Wilco {
 
     final private IdStore idStore = new IdStore();
     final private WilcoCore core;
-    private boolean running = true;
 
-    final private Object shutdownGuard = new Object();
+    final private ClosedOnceGuard shutdownGuard = new ClosedOnceGuard();
 
     public Wilco() {
         this(new Config());
@@ -57,35 +61,60 @@ public class Wilco {
     }
 
     public Queue createQueue(String id) {
-        synchronized (shutdownGuard) {
-            if(!running) {
-                throw new ShutdownException("Wilco instance " + this + " has been shut down");
-            }
+
+        Ref<Queue> queueRef = new Ref<>();
+
+        boolean guardOpen = shutdownGuard.runIfOpen(()-> {
             String queueId = idStore.compareAndSetId(id);
-            Queue queue = new Queue(new QueueAnchor(queueId), core);
-            core.scheduleAdminTask(new CreateQueueTask(core, queue));
-            return queue;
+            QueueAnchor queueAnchor = new QueueAnchor(queueId);
+            Queue queue = new Queue(queueAnchor, core);
+            core.scheduleAdminTask(new CreateQueueTask(core, new QueueAnchorPair(queue, queueAnchor)));
+            queueRef.set(queue);
+        });
+
+        if(!guardOpen) {
+            throw new ShutdownException("Wilco instance " + this + " has been shut down");
         }
+
+        return queueRef.get();
     }
 
-    public CompletableFuture<Integer> shutdown() {
+    public CompletableFuture<List<Runnable>> shutdown() {
         return shutdown(10, TimeUnit.SECONDS);
     }
 
-    public CompletableFuture<Integer> shutdown(int duration, TimeUnit unit) {
-        synchronized (shutdownGuard) {
-            if(!running) {
-                throw new ShutdownException("Wilco instance " + this + " already shut down");
-            }
-
-            CompletableFuture<Integer> future = new CompletableFuture<>();
-            core.scheduleAdminTask(new ShutdownTask(toString(), core, future, duration, unit));
-
-            running = false;
-            return future;
+    public CompletableFuture<List<Runnable>> shutdown(long duration, TimeUnit unit) {
+        if(unit == null) {
+            throw new NullPointerException("unit null");
         }
+
+        CompletableFuture<List<Runnable>> future = new CompletableFuture<>();
+
+        boolean guardWasOpen = shutdownGuard.closeAndRun(()->
+            core.scheduleAdminTask(new PrepareShutdownTask(toString(), core, future, duration, unit))
+        );
+
+        if(!guardWasOpen) {
+            throw new ShutdownException("Wilco instance " + this + " already shut down");
+        }
+
+        return future;
     }
 
+    public void tryShutdown(long duration, TimeUnit unit, Consumer<ShutdownCallback> callback) {
+        if(unit == null) {
+            throw new NullPointerException("unit null");
+        }
+        if(callback == null) {
+            throw new NullPointerException("callback null");
+        }
+
+
+    }
+
+    public boolean isSchedulerRunning() {
+        return core.isSchedulerRunning();
+    }
 
     public void addDLQListener(DeadLetterListener deadLetterListener) {
         core.addDLQListener(deadLetterListener);
@@ -103,9 +132,8 @@ public class Wilco {
         core.clearDLQ();
     }
 
-    public boolean isRunning() {
-        synchronized (shutdownGuard) {
-            return running;
-        }
+    public boolean isShutdown() {
+        return shutdownGuard.isClosed();
     }
+
 }

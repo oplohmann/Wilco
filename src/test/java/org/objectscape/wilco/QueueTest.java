@@ -242,7 +242,7 @@ public class QueueTest extends AbstractTest {
         Assert.assertEquals(1, wilco.getDLQEntries().size());
 
         DeadLetterEntry entry = wilco.getDLQEntries().get(0);
-        Assert.assertEquals("1", entry.getQueueId());
+        Assert.assertEquals("1", entry.getQueueId().get());
         Assert.assertEquals(ArithmeticException.class, entry.getException().getClass());
         Assert.assertTrue(entry.getStackTrace().startsWith("java.lang.ArithmeticException: / by zero"));
 

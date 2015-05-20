@@ -3,6 +3,8 @@ package org.objectscape.wilco.core.tasks;
 import org.objectscape.wilco.core.Context;
 import org.objectscape.wilco.core.QueueAnchor;
 
+import java.util.Optional;
+
 /**
  * Created by plohmann on 19.02.2015.
  */
@@ -31,4 +33,8 @@ public class ScheduledTask extends QueueAnchorTask {
         return MIN_PRIORITY;
     }
 
+    @Override
+    public Optional<Runnable> getUserRunnable() {
+        return Optional.of(scheduledRunnable.getRunnable());
+    }
 }

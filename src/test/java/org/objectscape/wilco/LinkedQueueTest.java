@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.objectscape.wilco.util.LinkedQueue;
 
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by plohmann on 03.03.2015.
@@ -100,7 +101,7 @@ public class LinkedQueueTest {
         Assert.assertEquals(list.removeFirst().intValue(), 4);
     }
 
-    @Test
+    //@Test
     @Ignore
     public void littlePerformanceEstimation() {
 
@@ -131,5 +132,19 @@ public class LinkedQueueTest {
         }
 
         // System.out.println(System.currentTimeMillis() - start);
+    }
+
+    @Test
+    public void toList() {
+        int size = 10;
+        LinkedQueue<Integer> queue = new LinkedQueue<Integer>();
+        for (int i = 0; i < size; i++) {
+            queue.addLast(i);
+        }
+        List<Integer> ints = queue.toList();
+        Assert.assertEquals(size, ints.size());
+        for (int i = 0; i < size; i++) {
+            Assert.assertEquals(Integer.valueOf(i), ints.get(i));
+        }
     }
 }

@@ -1,56 +1,28 @@
 package org.objectscape.wilco.core.tasks;
 
-import org.objectscape.wilco.core.Context;
 import org.objectscape.wilco.core.WilcoCore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by plohmann on 19.02.2015.
+ * Created by Nutzer on 18.05.2015.
  */
-public class ShutdownTask extends CoreTask {
+public abstract class ShutdownTask extends CoreTask {
 
-    final private static Logger LOG = LoggerFactory.getLogger(ShutdownTask.class);
+    final protected WilcoCore core;
+    final protected CompletableFuture<List<Runnable>> doneSignal;
+    final protected long duration;
+    final protected TimeUnit unit;
+    final protected long start;
 
-    private String wilco;
-    private WilcoCore core;
-    private CompletableFuture<Integer> doneSignal;
-    final private long duration;
-    final private TimeUnit unit;
-
-    public ShutdownTask(String wilco, WilcoCore core, CompletableFuture<Integer> doneSignal, int duration, TimeUnit unit) {
-        super();
-        this.wilco = wilco;
+    public ShutdownTask(WilcoCore core, CompletableFuture<List<Runnable>> doneSignal, long duration, TimeUnit unit, long start) {
         this.core = core;
         this.doneSignal = doneSignal;
         this.duration = duration;
         this.unit = unit;
+        this.start = start;
     }
 
-    @Override
-    public boolean run(Context context) {
-        int numOfRunningTasks = -1;
-        core.prepareShutdown(Math.round(duration * 0.75), unit);
-        context.getExecutor().shutdown();
-        try {
-            if(duration > 0) {
-                context.getExecutor().awaitTermination(duration, unit);
-            }
-            numOfRunningTasks = core.commitShutdown();
-        } catch (InterruptedException e) {
-            context.addToDeadLetterQueue(null, e);
-        }
-        finally {
-            doneSignal.complete(numOfRunningTasks);
-        }
-        return false;
-    }
-
-    @Override
-    public int priority() {
-        return MAX_PRIORITY;
-    }
 }

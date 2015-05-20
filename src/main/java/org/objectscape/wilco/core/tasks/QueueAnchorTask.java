@@ -4,6 +4,8 @@ import org.objectscape.wilco.core.Context;
 import org.objectscape.wilco.core.QueueAnchor;
 import org.objectscape.wilco.core.ScheduledRunnable;
 
+import java.util.Optional;
+
 /**
  * Created by plohmann on 23.03.2015.
  */
@@ -33,19 +35,15 @@ public abstract class QueueAnchorTask extends CoreTask {
     }
 
     protected void executeNext(final Context context, ScheduledRunnable nextRunnable) {
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    nextRunnable.run();
-                } catch (Throwable throwable) {
-                    context.addToDeadLetterQueue(queueAnchor.getId(), throwable);
-                }
-                context.getEntryQueue().add(new CompletedTask(queueAnchor, nextRunnable));
-                clear();
+        context.getExecutor().execute(() -> {
+            try {
+                nextRunnable.run();
+            } catch (Throwable throwable) {
+                context.addToDeadLetterQueue(queueAnchor.getId(), throwable);
             }
-        };
-        context.getExecutor().execute(runnable);
+            context.getEntryQueue().add(new CompletedTask(queueAnchor, nextRunnable));
+            clear();
+        });
     }
 
     protected void runWhenDone(Context context) {
@@ -53,7 +51,7 @@ public abstract class QueueAnchorTask extends CoreTask {
             try {
                 scheduledRunnable.runWhenDone();
             } catch (Exception e) {
-                context.addToDeadLetterQueue(queueId(), e);
+                context.addToDeadLetterQueue(queueId().orElse(null), e);
             }
         }
     }
@@ -65,7 +63,7 @@ public abstract class QueueAnchorTask extends CoreTask {
     }
 
     @Override
-    public String queueId() {
-        return queueAnchor.getId();
+    public Optional<String> queueId() {
+        return Optional.of(queueAnchor.getId());
     }
 }

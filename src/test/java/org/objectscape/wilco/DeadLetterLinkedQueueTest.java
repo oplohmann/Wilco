@@ -24,7 +24,7 @@ public class DeadLetterLinkedQueueTest {
         AtomicInteger count = new AtomicInteger(0);
         CountDownLatch latch = new CountDownLatch(1);
         Consumer<DeadLetterEntry> callback = (dle) -> {
-            Assert.assertEquals(queueId, dle.getQueueId());
+            Assert.assertEquals(queueId, dle.getQueueId().get());
             Assert.assertEquals(ArithmeticException.class, dle.getException().getClass());
             count.incrementAndGet();
             latch.countDown();

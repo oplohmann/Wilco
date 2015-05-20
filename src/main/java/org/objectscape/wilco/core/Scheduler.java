@@ -5,6 +5,7 @@ import org.objectscape.wilco.core.tasks.CoreTask;
 import org.objectscape.wilco.util.TransferPriorityQueue;
 
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by plohmann on 19.02.2015.
@@ -13,6 +14,7 @@ public class Scheduler implements Runnable {
 
     final private Context context;
     final private TransferPriorityQueue<CoreTask> entryQueue;
+    final private AtomicBoolean running = new AtomicBoolean(false);
 
     private boolean proceed = true;
 
@@ -24,6 +26,7 @@ public class Scheduler implements Runnable {
     @Override
     public void run()
     {
+        running.compareAndSet(false, true);
         while(proceed)
         {
             CoreTask coreTask = null;
@@ -33,9 +36,14 @@ public class Scheduler implements Runnable {
                 proceed = coreTask.run(context);
             }
             catch (Throwable e) {
-                context.addToDeadLetterQueue(coreTask.queueId(), e);
+                context.addToDeadLetterQueue(coreTask.queueId().get(), e);
             }
         }
+        running.compareAndSet(true, false);
+    }
+
+    public boolean isRunning() {
+        return running.get();
     }
 
 }

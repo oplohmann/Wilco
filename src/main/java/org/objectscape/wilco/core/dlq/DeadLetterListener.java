@@ -33,7 +33,7 @@ public class DeadLetterListener {
     }
 
     public boolean matches(DeadLetterEntry entry) {
-        if(queueId != null && !queueId.equals(entry.getQueueId())) {
+        if(queueId != null && !queueId.equals(entry.getQueueId().orElse(null))) {
             return false;
         }
         if(exceptionClass != null && !exceptionClass.isInstance(entry.getException())) {

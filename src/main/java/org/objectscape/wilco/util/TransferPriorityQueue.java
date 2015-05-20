@@ -84,6 +84,8 @@ public class TransferPriorityQueue<T extends CoreTask> {
     }
 
     private T pollInternal() {
+        // Items of MAX priority crowd out all other items. This is to make sure that internal admin tasks
+        // are executed immediately.
         T task = maxPriorityQueue.poll();
         if(task != null) {
             return task;
@@ -92,6 +94,8 @@ public class TransferPriorityQueue<T extends CoreTask> {
         if(task != null) {
             return task;
         }
+        // Items of MIN priority are not picked up until all items of higher priority have been consumed.
+        // Required for shutdown process to make sure the global queue has run empty before shutting down.
         task = minPriorityQueue.poll();
         if(task != null) {
             return task;
