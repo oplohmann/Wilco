@@ -1,17 +1,17 @@
-package org.objectscape.wilco.core;
+package org.objectscape.wilco.core.tasks.util;
 
 import org.objectscape.wilco.Queue;
+import org.objectscape.wilco.util.CollectorsUtil;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Created by Nutzer on 20.05.2015.
  */
-public class ShutdownResponse {
+public class ShutdownResponse implements CollectorsUtil {
 
     final private Map<Queue, List<Runnable>> nonEmptyQueues = new HashMap<>();
 
@@ -28,7 +28,7 @@ public class ShutdownResponse {
     }
 
     public Set<Runnable> getNotCompletedRunnables() {
-        return nonEmptyQueues.values().stream().flatMap(list -> list.stream()).collect(Collectors.toSet());
+        return toSet(nonEmptyQueues.values().stream().flatMap(list -> list.stream()));
     }
 
     public Set<Queue> getNotCompletedQueues() {
@@ -36,6 +36,6 @@ public class ShutdownResponse {
     }
 
     public Set<String> getNotCompletedQueuesIds() {
-        return nonEmptyQueues.keySet().stream().map(queue -> queue.getId()).collect(Collectors.toSet());
+        return toSet(nonEmptyQueues.keySet().stream().map(queue -> queue.getId()));
     }
 }

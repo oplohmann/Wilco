@@ -2,36 +2,33 @@ package org.objectscape.wilco.core.tasks;
 
 import org.objectscape.wilco.Queue;
 import org.objectscape.wilco.core.Context;
-import org.objectscape.wilco.core.ShutdownResponse;
-import org.objectscape.wilco.core.WilcoCore;
+import org.objectscape.wilco.core.tasks.util.ShutdownResponse;
+import org.objectscape.wilco.core.tasks.util.ShutdownTaskInfo;
+import org.objectscape.wilco.util.CollectorsUtil;
 import org.objectscape.wilco.util.QueueAnchorPair;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * Created by Nutzer on 15.05.2015.
  */
-public class ShutdownSchedulerTask extends ShutdownTask {
+public class ShutdownSchedulerTask extends ShutdownTask implements CollectorsUtil {
 
-    final private CompletableFuture<ShutdownResponse> doneSignal;
-    final private List<QueueAnchorPair> nonEmptyQueues;
+    final protected List<QueueAnchorPair> nonEmptyQueues;
 
-    public ShutdownSchedulerTask(WilcoCore core, CompletableFuture<ShutdownResponse> doneSignal, long duration, TimeUnit unit, long start, List<QueueAnchorPair> nonEmptyQueues) {
-        super(core, doneSignal, duration, unit, start);
-        this.doneSignal = doneSignal;
+    public ShutdownSchedulerTask(ShutdownTaskInfo shutdownTaskInfo, List<QueueAnchorPair> nonEmptyQueues) {
+        super(shutdownTaskInfo);
         this.nonEmptyQueues = nonEmptyQueues;
     }
 
     @Override
     public boolean run(Context context) {
         ShutdownResponse numberOfRunningTasks = shutdownThreadPoolAndScheduler(context);
-        doneSignal.complete(numberOfRunningTasks);
+        getDoneSignal().complete(numberOfRunningTasks);
         return false; // returning false will make the Scheduler exit its main loop
     }
 
@@ -40,8 +37,8 @@ public class ShutdownSchedulerTask extends ShutdownTask {
         return MAX_PRIORITY;
     }
 
-    private ShutdownResponse shutdownThreadPoolAndScheduler(Context context) {
-        long remainingShutdownTime = unit.toMillis(duration) - (System.currentTimeMillis() - start);
+    protected ShutdownResponse shutdownThreadPoolAndScheduler(Context context) {
+        long remainingShutdownTime = getDurationInMillis() - (System.currentTimeMillis() - getStart());
         if(remainingShutdownTime > 0) {
             context.getExecutor().shutdown();
             try {
@@ -52,11 +49,11 @@ public class ShutdownSchedulerTask extends ShutdownTask {
         } else {
             context.getExecutor().shutdownNow();
         }
-        core.commitShutdown();
+        getCore().commitShutdown();
         return createShutdownResponse();
     }
 
-    private ShutdownResponse createShutdownResponse() {
+    protected ShutdownResponse createShutdownResponse() {
         Map<Queue, List<Runnable>> notCompletedRunnablesByQueue = new HashMap<>();
         for(QueueAnchorPair queueAnchorPair : nonEmptyQueues) {
             List<Runnable> notCompletedRunnables = notCompletedRunnablesByQueue.get(queueAnchorPair.getQueue());
@@ -69,7 +66,4 @@ public class ShutdownSchedulerTask extends ShutdownTask {
         return new ShutdownResponse(notCompletedRunnablesByQueue);
     }
 
-    public List<Runnable> getStillRunningRunnables() {
-        return nonEmptyQueues.stream().flatMap(queueAnchorPair -> queueAnchorPair.getUserRunnables().stream()).collect(Collectors.toList());
-    }
 }

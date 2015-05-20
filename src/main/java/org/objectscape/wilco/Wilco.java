@@ -1,10 +1,16 @@
 package org.objectscape.wilco;
 
-import org.objectscape.wilco.core.*;
+import org.objectscape.wilco.core.QueueAnchor;
+import org.objectscape.wilco.core.ShutdownException;
+import org.objectscape.wilco.core.ShutdownTimeout;
+import org.objectscape.wilco.core.WilcoCore;
 import org.objectscape.wilco.core.dlq.DeadLetterEntry;
 import org.objectscape.wilco.core.dlq.DeadLetterListener;
 import org.objectscape.wilco.core.tasks.CreateQueueTask;
 import org.objectscape.wilco.core.tasks.PrepareShutdownTask;
+import org.objectscape.wilco.core.tasks.TryPrepareShutdownTask;
+import org.objectscape.wilco.core.tasks.util.ShutdownResponse;
+import org.objectscape.wilco.core.tasks.util.ShutdownTaskInfo;
 import org.objectscape.wilco.util.ClosedOnceGuard;
 import org.objectscape.wilco.util.IdStore;
 import org.objectscape.wilco.util.QueueAnchorPair;
@@ -84,11 +90,16 @@ public class Wilco {
         if(unit == null) {
             throw new NullPointerException("unit null");
         }
+        if(duration < 0) {
+            throw new IllegalArgumentException("duration must not be negative");
+        }
 
         CompletableFuture<ShutdownResponse> future = new CompletableFuture<>();
 
         boolean guardWasOpen = shutdownGuard.closeAndRun(()->
-            core.scheduleAdminTask(new PrepareShutdownTask(toString(), core, future, duration, unit))
+            core.scheduleAdminTask(new PrepareShutdownTask(
+                    toString(),
+                    new ShutdownTaskInfo(core, future, duration, unit, System.currentTimeMillis())))
         );
 
         if(!guardWasOpen) {
@@ -98,15 +109,32 @@ public class Wilco {
         return future;
     }
 
-    public void tryShutdown(long duration, TimeUnit unit, Consumer<ShutdownCallback> callback) {
+    public CompletableFuture<ShutdownResponse> tryShutdown(long duration, TimeUnit unit, Consumer<ShutdownTimeout> callback) {
         if(unit == null) {
             throw new NullPointerException("unit null");
         }
         if(callback == null) {
             throw new NullPointerException("callback null");
         }
+        if(duration < 0) {
+            throw new IllegalArgumentException("duration must not be negative");
+        }
 
+        CompletableFuture<ShutdownResponse> future = new CompletableFuture<>();
 
+        boolean guardWasOpen = shutdownGuard.closeAndRun(()->
+            core.scheduleAdminTask(new TryPrepareShutdownTask(
+                    toString(),
+                    new ShutdownTaskInfo(core, future, duration, unit, System.currentTimeMillis()),
+                    callback,
+                    null, 1))
+        );
+
+        if(!guardWasOpen) {
+            throw new ShutdownException("Wilco instance " + this + " already shut down");
+        }
+
+        return future;
     }
 
     public boolean isSchedulerRunning() {

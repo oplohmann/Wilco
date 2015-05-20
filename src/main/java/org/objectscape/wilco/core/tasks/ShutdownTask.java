@@ -1,7 +1,8 @@
 package org.objectscape.wilco.core.tasks;
 
-import org.objectscape.wilco.core.ShutdownResponse;
 import org.objectscape.wilco.core.WilcoCore;
+import org.objectscape.wilco.core.tasks.util.ShutdownResponse;
+import org.objectscape.wilco.core.tasks.util.ShutdownTaskInfo;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -11,18 +12,33 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class ShutdownTask extends CoreTask {
 
-    final protected WilcoCore core;
-    final protected CompletableFuture<ShutdownResponse> doneSignal;
-    final protected long duration;
-    final protected TimeUnit unit;
-    final protected long start;
+    final protected ShutdownTaskInfo shutdownTaskInfo;
 
-    public ShutdownTask(WilcoCore core, CompletableFuture<ShutdownResponse> doneSignal, long duration, TimeUnit unit, long start) {
-        this.core = core;
-        this.doneSignal = doneSignal;
-        this.duration = duration;
-        this.unit = unit;
-        this.start = start;
+    public ShutdownTask(ShutdownTaskInfo shutdownTaskInfo) {
+        this.shutdownTaskInfo = shutdownTaskInfo;
     }
 
+    public WilcoCore getCore() {
+        return shutdownTaskInfo.getCore();
+    }
+
+    public TimeUnit getUnit() {
+        return shutdownTaskInfo.getUnit();
+    }
+
+    public long getStart() {
+        return shutdownTaskInfo.getStart();
+    }
+
+    public long getDuration() {
+        return shutdownTaskInfo.getDuration();
+    }
+
+    public CompletableFuture<ShutdownResponse> getDoneSignal() {
+        return shutdownTaskInfo.getDoneSignal();
+    }
+
+    protected long getDurationInMillis() {
+        return getUnit().toMillis(getDuration());
+    }
 }

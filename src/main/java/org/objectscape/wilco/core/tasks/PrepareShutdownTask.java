@@ -1,15 +1,9 @@
 package org.objectscape.wilco.core.tasks;
 
 import org.objectscape.wilco.core.Context;
-import org.objectscape.wilco.core.ShutdownResponse;
-import org.objectscape.wilco.core.WilcoCore;
-import org.objectscape.wilco.util.QueueAnchorPair;
+import org.objectscape.wilco.core.tasks.util.ShutdownTaskInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by plohmann on 19.02.2015.
@@ -18,18 +12,21 @@ public class PrepareShutdownTask extends ShutdownTask {
 
     final private static Logger LOG = LoggerFactory.getLogger(PrepareShutdownTask.class);
 
-    private String wilco;
+    final private String wilco;
 
-    public PrepareShutdownTask(String wilco, WilcoCore core, CompletableFuture<ShutdownResponse> doneSignal, long duration, TimeUnit unit) {
-        super(core, doneSignal, duration, unit, System.currentTimeMillis());
+    public PrepareShutdownTask(String wilco, ShutdownTaskInfo shutdownTaskInfo) {
+        super(shutdownTaskInfo);
         this.wilco = wilco;
     }
 
     @Override
     public boolean run(Context context) {
-        List<QueueAnchorPair> allQueues = core.closeAllQueues();
-        core.scheduleAdminTask(new RunEmptyShutdownTask(core, doneSignal, duration, unit, start, allQueues));
+        getCore().scheduleAdminTask(getRunEmptyShutdownTask());
         return true;
+    }
+
+    protected RunEmptyShutdownTask getRunEmptyShutdownTask() {
+        return new RunEmptyShutdownTask(shutdownTaskInfo, getCore().closeAllQueues());
     }
 
     @Override
