@@ -9,6 +9,7 @@ import org.objectscape.wilco.core.QueueClosedException;
 import org.objectscape.wilco.core.ShutdownException;
 import org.objectscape.wilco.core.dlq.DeadLetterEntry;
 import org.objectscape.wilco.core.dlq.DeadLetterListener;
+import org.objectscape.wilco.core.tasks.util.ShutdownResponse;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -322,6 +323,30 @@ public class QueueTest extends AbstractTest {
         Assert.assertFalse(timeOut);
 
         Assert.assertEquals(anything, value.get());
+    }
+
+    @Test
+    public void timeoutDeadChannel() throws InterruptedException, TimeoutException, ExecutionException {
+        // TODO this one should not fail but currently reveals a timing problem
+        shutdown = false;
+
+        Channel<String> a = wilco.createChannel("a");
+        Channel<String> b = wilco.createChannel("b");
+
+        AtomicInteger count = new AtomicInteger();
+        a.onReceive(str -> count.incrementAndGet());
+
+        // no receive block defined for channel b.
+
+        globalQueue.execute(() -> a.send("a"));
+        globalQueue.execute(() -> b.send("b"));
+
+        CompletableFuture<ShutdownResponse> shutdownResponse = wilco.shutdown(2, TimeUnit.SECONDS);
+        int numOfPendingSends = shutdownResponse.get(2, TimeUnit.SECONDS).getNotCompletedQueues().size();
+        Assert.assertEquals(1, numOfPendingSends);
+        Assert.assertTrue(shutdownResponse.get().getNotCompletedQueuesIds().contains("b"));
+
+        Assert.assertEquals(1, count.get());
     }
 
     @Test

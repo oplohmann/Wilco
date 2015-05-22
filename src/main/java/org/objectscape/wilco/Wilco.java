@@ -7,8 +7,8 @@ import org.objectscape.wilco.core.WilcoCore;
 import org.objectscape.wilco.core.dlq.DeadLetterEntry;
 import org.objectscape.wilco.core.dlq.DeadLetterListener;
 import org.objectscape.wilco.core.tasks.CreateQueueTask;
-import org.objectscape.wilco.core.tasks.PrepareShutdownTask;
-import org.objectscape.wilco.core.tasks.TryPrepareShutdownTask;
+import org.objectscape.wilco.core.tasks.InitiateShutdownTask;
+import org.objectscape.wilco.core.tasks.TryInitiateShutdownTask;
 import org.objectscape.wilco.core.tasks.util.ShutdownResponse;
 import org.objectscape.wilco.core.tasks.util.ShutdownTaskInfo;
 import org.objectscape.wilco.util.ClosedOnceGuard;
@@ -59,8 +59,16 @@ public class Wilco {
         return new Channel<>(createQueue(), Alternation.Random);
     }
 
+    public <T> Channel<T> createChannel(String channelId) {
+        return new Channel<>(createQueue(channelId), Alternation.Random);
+    }
+
     public <T> Channel<T> createChannel(Alternation alternationBetweenReceivers) {
         return new Channel<>(createQueue(), alternationBetweenReceivers);
+    }
+
+    public <T> Channel<T> createChannel(String channelId, Alternation alternationBetweenReceivers) {
+        return new Channel<>(createQueue(channelId), alternationBetweenReceivers);
     }
 
     public Queue createQueue(String id) {
@@ -97,7 +105,7 @@ public class Wilco {
         CompletableFuture<ShutdownResponse> future = new CompletableFuture<>();
 
         boolean guardWasOpen = shutdownGuard.closeAndRun(()->
-            core.scheduleAdminTask(new PrepareShutdownTask(
+            core.scheduleAdminTask(new InitiateShutdownTask(
                     toString(),
                     new ShutdownTaskInfo(core, future, duration, unit, System.currentTimeMillis())))
         );
@@ -123,7 +131,7 @@ public class Wilco {
         CompletableFuture<ShutdownResponse> future = new CompletableFuture<>();
 
         boolean guardWasOpen = shutdownGuard.closeAndRun(()->
-            core.scheduleAdminTask(new TryPrepareShutdownTask(
+            core.scheduleAdminTask(new TryInitiateShutdownTask(
                     toString(),
                     new ShutdownTaskInfo(core, future, duration, unit, System.currentTimeMillis()),
                     callback,
@@ -161,4 +169,7 @@ public class Wilco {
         return shutdownGuard.isClosed();
     }
 
+    public Select createSelect() {
+        return new Select();
+    }
 }

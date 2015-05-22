@@ -8,13 +8,13 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by plohmann on 19.02.2015.
  */
-public class PrepareShutdownTask extends ShutdownTask {
+public class InitiateShutdownTask extends ShutdownTask {
 
-    final private static Logger LOG = LoggerFactory.getLogger(PrepareShutdownTask.class);
+    final private static Logger LOG = LoggerFactory.getLogger(InitiateShutdownTask.class);
 
     final private String wilco;
 
-    public PrepareShutdownTask(String wilco, ShutdownTaskInfo shutdownTaskInfo) {
+    public InitiateShutdownTask(String wilco, ShutdownTaskInfo shutdownTaskInfo) {
         super(shutdownTaskInfo);
         this.wilco = wilco;
     }

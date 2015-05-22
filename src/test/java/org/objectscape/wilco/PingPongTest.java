@@ -1,16 +1,39 @@
 package org.objectscape.wilco;
 
+import junit.framework.Assert;
 import org.junit.Test;
 import org.objectscape.wilco.model.Ball;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Nutzer on 23.04.2015.
  */
 public class PingPongTest extends AbstractTest {
+
+    @Test
+    public void trivialSample() throws InterruptedException {
+        // modeled after this sample in Go: http://talks.golang.org/2013/advconc.slide#5
+        AtomicInteger valueHolder = new AtomicInteger();
+        CountDownLatch latch = new CountDownLatch(1);
+        int someInt = 127;
+
+        Channel<Integer> channel = wilco.createChannel();
+        channel.onReceive(value -> {
+            valueHolder.compareAndSet(0, value);
+            latch.countDown();
+        });
+
+        channel.send(someInt);
+
+        boolean noTimeOut = latch.await(4, TimeUnit.SECONDS);
+        Assert.assertTrue(noTimeOut);
+        Assert.assertEquals(someInt, valueHolder.get());
+    }
 
     @Test
     public void pingPong() throws InterruptedException, ExecutionException {

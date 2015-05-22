@@ -10,13 +10,13 @@ import java.util.function.Consumer;
 /**
  * Created by Nutzer on 20.05.2015.
  */
-public class TryPrepareShutdownTask extends PrepareShutdownTask {
+public class TryInitiateShutdownTask extends InitiateShutdownTask {
 
     final private Consumer<ShutdownTimeout> shutdownTimeout;
     final private int trialCount;
     final private List<QueueAnchorPair> nonEmptyQueues;
 
-    public TryPrepareShutdownTask(String wilco, ShutdownTaskInfo shutdownTaskInfo, Consumer<ShutdownTimeout> shutdownTimeout, List<QueueAnchorPair> nonEmptyQueues, int trialCount) {
+    public TryInitiateShutdownTask(String wilco, ShutdownTaskInfo shutdownTaskInfo, Consumer<ShutdownTimeout> shutdownTimeout, List<QueueAnchorPair> nonEmptyQueues, int trialCount) {
         super(wilco, shutdownTaskInfo);
         this.shutdownTimeout = shutdownTimeout;
         this.trialCount = trialCount;

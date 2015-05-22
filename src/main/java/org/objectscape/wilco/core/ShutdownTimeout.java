@@ -1,7 +1,7 @@
 package org.objectscape.wilco.core;
 
 import org.objectscape.wilco.Queue;
-import org.objectscape.wilco.core.tasks.TryPrepareShutdownTask;
+import org.objectscape.wilco.core.tasks.TryInitiateShutdownTask;
 import org.objectscape.wilco.core.tasks.TryShutdownSchedulerTask;
 import org.objectscape.wilco.core.tasks.util.ShutdownResponse;
 import org.objectscape.wilco.core.tasks.util.ShutdownTaskInfo;
@@ -69,7 +69,7 @@ public class ShutdownTimeout {
     }
 
     public void retryShutdown(long duration, TimeUnit unit) {
-        core.scheduleAdminTask(new TryPrepareShutdownTask(
+        core.scheduleAdminTask(new TryInitiateShutdownTask(
                 toString(),
                 new ShutdownTaskInfo(core, future, duration, unit, System.currentTimeMillis()),
                 callback,
