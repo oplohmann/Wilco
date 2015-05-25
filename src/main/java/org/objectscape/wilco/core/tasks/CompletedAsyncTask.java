@@ -19,6 +19,7 @@ public class CompletedAsyncTask extends CoreTask {
     @Override
     public boolean run(Context context) {
         queueAnchor.removeTask(taskId);
+        clear();
         return true;
     }
 
