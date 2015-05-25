@@ -16,17 +16,11 @@ import java.util.concurrent.TimeoutException;
 public abstract class AbstractTest {
 
     protected Wilco wilco;
-    protected Queue globalQueue;
     protected boolean shutdown = true;
-
-    public void async(Runnable runnable) {
-        globalQueue.execute(runnable);
-    }
 
     @Before
     public void startUp() {
         wilco = Wilco.newInstance(new Config());
-        globalQueue = wilco.createQueue();
     }
 
     @After
@@ -34,10 +28,13 @@ public abstract class AbstractTest {
         if(!shutdown) {
             return;
         }
-        globalQueue.close();
         Assert.assertTrue(wilco.getDLQEntries().isEmpty());
         CompletableFuture<ShutdownResponse> shutdownResponse = wilco.shutdown();
-        shutdownResponse.get(5, TimeUnit.SECONDS);
+        shutdownResponse.get(shutdownTimeoutInSecs(), TimeUnit.SECONDS);
+    }
+
+    protected int shutdownTimeoutInSecs() {
+        return 5;
     }
 
 }

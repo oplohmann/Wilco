@@ -2,6 +2,7 @@ package org.objectscape.wilco.core.tasks;
 
 import org.objectscape.wilco.core.Context;
 import org.objectscape.wilco.core.QueueAnchor;
+import org.objectscape.wilco.core.ScheduledRunnable;
 
 import java.util.Optional;
 
@@ -29,12 +30,12 @@ public class ScheduledTask extends QueueAnchorTask {
     }
 
     @Override
-    public int priority() {
-        return MIN_PRIORITY;
+    public Optional<Runnable> getUserRunnable() {
+        return Optional.of(scheduledRunnable.getRunnable());
     }
 
     @Override
-    public Optional<Runnable> getUserRunnable() {
-        return Optional.of(scheduledRunnable.getRunnable());
+    protected CoreTask createCompletedTask(ScheduledRunnable nextRunnable, Integer taskId) {
+        return null;
     }
 }

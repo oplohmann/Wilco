@@ -1,9 +1,6 @@
 package org.objectscape.wilco;
 
-import org.objectscape.wilco.core.QueueAnchor;
-import org.objectscape.wilco.core.ShutdownException;
-import org.objectscape.wilco.core.ShutdownTimeout;
-import org.objectscape.wilco.core.WilcoCore;
+import org.objectscape.wilco.core.*;
 import org.objectscape.wilco.core.dlq.DeadLetterEntry;
 import org.objectscape.wilco.core.dlq.DeadLetterListener;
 import org.objectscape.wilco.core.tasks.CreateQueueTask;
@@ -48,7 +45,9 @@ public class Wilco {
         if(config == null) {
             throw new NullPointerException("config null");
         }
-        core = new WilcoCore(config);
+
+        String asyncQueueId = idStore.compareAndSetId(AsyncQueueAnchor.Id);
+        core = new WilcoCore(config, asyncQueueId);
     }
 
     public Queue createQueue() {
@@ -69,6 +68,16 @@ public class Wilco {
 
     public <T> Channel<T> createChannel(String channelId, Alternation alternationBetweenReceivers) {
         return new Channel<>(createQueue(channelId), alternationBetweenReceivers);
+    }
+
+    public void execute(Runnable runnable) {
+        boolean guardOpen = shutdownGuard.runIfOpen(()-> {
+            core.scheduleAsyncUserTask(runnable);
+        });
+
+        if(!guardOpen) {
+            throw new ShutdownException("Wilco instance " + this + " has been shut down");
+        }
     }
 
     public Queue createQueue(String id) {

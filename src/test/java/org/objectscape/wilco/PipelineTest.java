@@ -36,7 +36,7 @@ public class PipelineTest extends AbstractTest {
 
     private Channel<Integer> generate(int ... ints) {
         Channel<Integer> out = wilco.createChannel();
-        async(() -> {
+        wilco.execute(() -> {
             for (int i : ints) {
                 out.send(i);
             }

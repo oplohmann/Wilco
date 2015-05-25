@@ -1,6 +1,6 @@
 package org.objectscape.wilco.core.tasks.util;
 
-import org.objectscape.wilco.Queue;
+import org.objectscape.wilco.AbstractQueue;
 import org.objectscape.wilco.util.CollectorsUtil;
 
 import java.util.HashMap;
@@ -13,9 +13,9 @@ import java.util.Set;
  */
 public class ShutdownResponse implements CollectorsUtil {
 
-    final private Map<Queue, List<Runnable>> nonEmptyQueues = new HashMap<>();
+    final private Map<AbstractQueue, List<Runnable>> nonEmptyQueues = new HashMap<>();
 
-    public ShutdownResponse(Map<Queue, List<Runnable>> nonEmptyQueues) {
+    public ShutdownResponse(Map<AbstractQueue, List<Runnable>> nonEmptyQueues) {
         this.nonEmptyQueues.putAll(nonEmptyQueues);
     }
 
@@ -23,7 +23,7 @@ public class ShutdownResponse implements CollectorsUtil {
         return nonEmptyQueues.isEmpty();
     }
 
-    public Map<Queue, List<Runnable>> getNotCompletedRunnablesByQueue() {
+    public Map<AbstractQueue, List<Runnable>> getNotCompletedRunnablesByQueue() {
         return new HashMap<>(nonEmptyQueues);
     }
 
@@ -31,7 +31,7 @@ public class ShutdownResponse implements CollectorsUtil {
         return toSet(nonEmptyQueues.values().stream().flatMap(list -> list.stream()));
     }
 
-    public Set<Queue> getNotCompletedQueues() {
+    public Set<AbstractQueue> getNotCompletedQueues() {
         return nonEmptyQueues.keySet();
     }
 

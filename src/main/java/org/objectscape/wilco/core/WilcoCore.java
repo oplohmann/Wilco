@@ -1,11 +1,11 @@
 package org.objectscape.wilco.core;
 
+import org.objectscape.wilco.AsyncQueue;
 import org.objectscape.wilco.Config;
 import org.objectscape.wilco.core.dlq.DeadLetterEntry;
 import org.objectscape.wilco.core.dlq.DeadLetterListener;
 import org.objectscape.wilco.core.dlq.DeadLetterQueue;
 import org.objectscape.wilco.core.tasks.CoreTask;
-import org.objectscape.wilco.core.tasks.ScheduledTask;
 import org.objectscape.wilco.util.QueueAnchorPair;
 import org.objectscape.wilco.util.TransferPriorityQueue;
 import org.slf4j.Logger;
@@ -29,12 +29,15 @@ public class WilcoCore {
     final private ThreadPoolExecutor executor;
     final private DeadLetterQueue deadLetterQueue = new DeadLetterQueue();
     final private Map<String, QueueAnchorPair> queuesById = new TreeMap<>();
+    final private QueueAnchorPair asyncQueue;
 
     private TransferPriorityQueue<CoreTask> entryQueue = new TransferPriorityQueue<>();
 
-    public WilcoCore(Config config)
+    public WilcoCore(Config config, String asyncQueueId)
     {
         this.config = config;
+
+        asyncQueue = createAsyncQueue(asyncQueueId);
 
         executor = new ThreadPoolExecutor(
             config.getCorePoolSize(),
@@ -49,7 +52,15 @@ public class WilcoCore {
         thread.start();
     }
 
-    public void scheduleUserTask(ScheduledTask scheduledTask) {
+    private QueueAnchorPair createAsyncQueue(String asyncQueueId) {
+        AsyncQueueAnchor queueAnchor = new AsyncQueueAnchor(asyncQueueId);
+        AsyncQueue queue = new AsyncQueue(queueAnchor, this);
+        QueueAnchorPair queueAnchorPair = new QueueAnchorPair(queue, queueAnchor);
+        queuesById.put(asyncQueueId, queueAnchorPair);
+        return queueAnchorPair;
+    }
+
+    public void scheduleUserTask(CoreTask scheduledTask) {
         entryQueue.add(scheduledTask);
     }
 
@@ -105,4 +116,7 @@ public class WilcoCore {
         return scheduler.isRunning();
     }
 
+    public void scheduleAsyncUserTask(Runnable runnable) {
+        asyncQueue.getQueue().execute(runnable);
+    }
 }

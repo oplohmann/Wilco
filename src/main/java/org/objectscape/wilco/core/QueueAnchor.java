@@ -1,31 +1,19 @@
 package org.objectscape.wilco.core;
 
-import org.objectscape.wilco.util.CollectorsUtil;
 import org.objectscape.wilco.util.LinkedQueue;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by plohmann on 19.02.2015.
  */
-public class QueueAnchor implements CollectorsUtil {
+public class QueueAnchor extends AbstractQueueAnchor {
 
-    final private String id;
-    final private AtomicInteger userTasksCount = new AtomicInteger(0);
     final private LinkedQueue<ScheduledRunnable> waitingTasks = new LinkedQueue<>();
     private boolean suspended = false;
 
     public QueueAnchor(String id) {
-        this.id = id;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public int userTasksCount() {
-        return userTasksCount.get();
+        super(id);
     }
 
     public boolean addTask(ScheduledRunnable runnable) {
@@ -34,10 +22,6 @@ public class QueueAnchor implements CollectorsUtil {
             return false;
         }
         return waitingTasks.size() == 1;
-    }
-
-    public boolean isEmpty() {
-        return waitingTasks.size() == 0;
     }
 
     public ScheduledRunnable removeCurrentTask() {
@@ -64,12 +48,10 @@ public class QueueAnchor implements CollectorsUtil {
         this.suspended = suspended;
     }
 
-    public void incrementSize() {
-        userTasksCount.incrementAndGet();
-    }
 
     @SchedulerControlled
     public List<Runnable> getUserRunnables() {
-        return toList(waitingTasks.toList().stream().map(ScheduledRunnable::getRunnable));
+        return toList(waitingTasks.toList().stream().map(scheduledRunnable -> scheduledRunnable.getRunnable()));
     }
+
 }

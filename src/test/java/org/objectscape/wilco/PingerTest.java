@@ -54,9 +54,9 @@ public class PingerTest extends AbstractTest {
         List<String> output = new Vector<>();
         int iters = 3;
 
-        async(() -> pinger(channel, iters, false));
-        async(() -> printer(channel, output));
-        async(() -> pinger(channel, iters, true));
+        wilco.execute(() -> pinger(channel, iters, false));
+        wilco.execute(() -> printer(channel, output));
+        wilco.execute(() -> pinger(channel, iters, true));
 
         channel.waitTillClosed();
 

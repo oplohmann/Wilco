@@ -1,9 +1,7 @@
 package org.objectscape.wilco;
 
 import org.objectscape.wilco.core.QueueAnchor;
-import org.objectscape.wilco.core.QueueClosedException;
 import org.objectscape.wilco.core.WilcoCore;
-import org.objectscape.wilco.core.tasks.CloseQueueTask;
 import org.objectscape.wilco.core.tasks.ResumeChannelTask;
 import org.objectscape.wilco.core.tasks.ScheduledTask;
 import org.objectscape.wilco.core.tasks.SuspendChannelTask;
@@ -14,18 +12,15 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by plohmann on 19.02.2015.
  */
-public class Queue {
+public class Queue extends AbstractQueue {
 
     private final static Logger LOG = LoggerFactory.getLogger(Queue.class);
 
     private QueueAnchor queueAnchor;
-    private WilcoCore core;
-
-    private ClosedOnceGuard closedGuard = new ClosedOnceGuard();
 
     public Queue(QueueAnchor queueAnchor, WilcoCore core) {
+        super(core);
         this.queueAnchor = queueAnchor;
-        this.core = core;
     }
 
     public String getId() {
@@ -34,10 +29,6 @@ public class Queue {
 
     public int size() {
         return queueAnchor.userTasksCount();
-    }
-
-    public boolean isEmpty() {
-        return queueAnchor.userTasksCount() == 0;
     }
 
     public void execute(Runnable runnable) {
@@ -70,46 +61,10 @@ public class Queue {
         lockedForExecute(()-> core.scheduleAdminTask(new ResumeChannelTask(queueAnchor, whenDoneRunnable)));
     }
 
-    public void close() {
-        boolean wasOpen = closedGuard.closeAndRun(() -> core.scheduleAdminTask(new CloseQueueTask(core, getId())));
-        if(!wasOpen) {
-            throw new QueueClosedException("Queue " + getId() + " already closed");
-        }
-    }
-
-    private void lockedForExecute(Runnable runnable) {
-        boolean wasOpen = closedGuard.runIfOpen(runnable);
-        if(!wasOpen) {
-            throw new QueueClosedException("Queue " + getId() + " closed");
-        }
-    }
-
-    private void lockedForExecuteUser(Runnable runnable) {
-        Runnable userRunnable = ()-> {
-            queueAnchor.incrementSize();
-            runnable.run();
-        };
-        if(!closedGuard.runIfOpen(userRunnable)) {
-            throw new QueueClosedException("Queue " + getId() + " closed");
-        }
-    }
-
-    public boolean isClosed() {
-        return closedGuard.isClosed();
-    }
-
     protected void clear() {
         // Free ref to core to make this object reachable by the GC.
-        core = null;
         queueAnchor = null;
-    }
-
-    protected void finalize() throws Throwable {
-        try {
-            clear();
-        } finally {
-            super.finalize();
-        }
+        super.clear();
     }
 
     @Override
@@ -125,6 +80,10 @@ public class Queue {
             return getId().equals(queue.getId());
 
         return false;
+    }
+
+    protected void incrementSize() {
+        queueAnchor.incrementSize();
     }
 
     @Override

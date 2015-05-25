@@ -1,6 +1,6 @@
 package org.objectscape.wilco.core.tasks;
 
-import org.objectscape.wilco.Queue;
+import org.objectscape.wilco.AbstractQueue;
 import org.objectscape.wilco.core.Context;
 import org.objectscape.wilco.core.tasks.util.ShutdownResponse;
 import org.objectscape.wilco.core.tasks.util.ShutdownTaskInfo;
@@ -54,7 +54,7 @@ public class ShutdownSchedulerTask extends ShutdownTask implements CollectorsUti
     }
 
     protected ShutdownResponse createShutdownResponse() {
-        Map<Queue, List<Runnable>> notCompletedRunnablesByQueue = new HashMap<>();
+        Map<AbstractQueue, List<Runnable>> notCompletedRunnablesByQueue = new HashMap<>();
         for(QueueAnchorPair queueAnchorPair : nonEmptyQueues) {
             List<Runnable> notCompletedRunnables = notCompletedRunnablesByQueue.get(queueAnchorPair.getQueue());
             if(notCompletedRunnables == null) {

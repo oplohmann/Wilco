@@ -1,6 +1,6 @@
 package org.objectscape.wilco.core;
 
-import org.objectscape.wilco.Queue;
+import org.objectscape.wilco.AbstractQueue;
 import org.objectscape.wilco.core.tasks.TryInitiateShutdownTask;
 import org.objectscape.wilco.core.tasks.TryShutdownSchedulerTask;
 import org.objectscape.wilco.core.tasks.util.ShutdownResponse;
@@ -48,7 +48,7 @@ public class ShutdownTimeout {
                 true));
     }
 
-    public Map<Queue, List<Runnable>> getNotCompletedRunnablesByQueue() {
+    public Map<AbstractQueue, List<Runnable>> getNotCompletedRunnablesByQueue() {
         return shutdownResponse.getNotCompletedRunnablesByQueue();
     }
 
@@ -56,7 +56,7 @@ public class ShutdownTimeout {
         return shutdownResponse.getNotCompletedRunnables();
     }
 
-    public Set<Queue> getNotCompletedQueues() {
+    public Set<AbstractQueue> getNotCompletedQueues() {
         return shutdownResponse.getNotCompletedQueues();
     }
 
