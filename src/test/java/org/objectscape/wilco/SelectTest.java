@@ -1,6 +1,8 @@
 package org.objectscape.wilco;
 
-import jdk.nashorn.internal.ir.annotations.Ignore;
+
+import org.junit.Ignore;
+import org.junit.Test;
 
 /**
  * Created by Nutzer on 22.05.2015.
@@ -8,7 +10,7 @@ import jdk.nashorn.internal.ir.annotations.Ignore;
 public class SelectTest extends AbstractTest {
 
     @Ignore // implementation in progress
-    // @Test
+    @Test
     public void simpleSelect() throws InterruptedException {
         Channel<String> a = wilco.createChannel("a");
         Channel<Integer> b = wilco.createChannel("b");
