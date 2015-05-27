@@ -10,9 +10,10 @@ public class ChannelSelect {
     final private Wilco wilco;
     final private Queue queue;
 
-    public ChannelSelect(Wilco wilco) {
+    public ChannelSelect(Wilco wilco, Queue queue) {
         this.wilco = wilco;
-        queue = wilco.createQueue();
+        this.queue = queue;
+        queue.resume();
     }
 
     public <T> ChannelSelect onCase(Channel<T> channel, Consumer<T> runnable) {

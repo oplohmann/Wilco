@@ -1,6 +1,7 @@
 package org.objectscape.wilco;
 
 import org.objectscape.wilco.core.QueueClosedException;
+import org.objectscape.wilco.util.ChannelSelectQueueConsumerPair;
 import org.objectscape.wilco.util.QueueConsumerPair;
 
 import java.util.List;
@@ -47,11 +48,11 @@ public class Channel<T> {
             queue.execute(() -> {
                 // If no consumers available, the queue remains suspended until some consumer is added.
                 // In that case the consumer is evaluated lazily once the queue is resumed.
-                getNextConsumer(consumers).accept(item);
+                getNextConsumer(consumers).accept(queue, item);
             });
         }
         else {
-            queueConsumerPair.accept(item);
+            queueConsumerPair.accept(queue, item);
         }
     }
 
@@ -62,8 +63,8 @@ public class Channel<T> {
         return getNextConsumerPair(consumers);
     }
 
-    private Consumer<T> getNextConsumer(List<QueueConsumerPair<T>> consumers) {
-        return getNextConsumerPair(consumers).getConsumer();
+    private QueueConsumerPair<T> getNextConsumer(List<QueueConsumerPair<T>> consumers) {
+        return getNextConsumerPair(consumers);
     }
 
     private QueueConsumerPair<T> getNextConsumerPair(List<QueueConsumerPair<T>> consumers) {
@@ -92,9 +93,7 @@ public class Channel<T> {
 
     public CompletableFuture<T> onReceive(Consumer<T> consumer) {
         consumers.add(new QueueConsumerPair<T>(queue, consumer));
-        if(suspended.get() && suspended.compareAndSet(true, false)) {
-            queue.resume();
-        }
+        receiverAdded();
         return closedFuture;
     }
 
@@ -169,7 +168,14 @@ public class Channel<T> {
         return result;
     }
 
-    protected void onCase(Queue channelSelectQueue, Consumer<T> runnable) {
+    protected void onCase(Queue channelSelectQueue, Consumer<T> consumer) {
+        consumers.add(new ChannelSelectQueueConsumerPair<>(queue, channelSelectQueue, consumer));
+        receiverAdded();
+    }
 
+    private void receiverAdded() {
+        if(suspended.get() && suspended.compareAndSet(true, false)) {
+            queue.resume();
+        }
     }
 }

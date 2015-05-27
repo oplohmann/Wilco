@@ -51,7 +51,7 @@ public class Wilco {
     }
 
     public Queue createQueue() {
-        return createQueue(idStore.generateId());
+        return createQueue(idStore.generateId(), false);
     }
 
     public <T> Channel<T> createChannel() {
@@ -81,11 +81,15 @@ public class Wilco {
     }
 
     public Queue createQueue(String id) {
+        return createQueue(id, true);
+    }
+
+    private Queue createQueue(String id, boolean verify) {
 
         Ref<Queue> queueRef = new Ref<>();
 
         boolean guardOpen = shutdownGuard.runIfOpen(()-> {
-            String queueId = idStore.compareAndSetId(id);
+            String queueId = verify ? idStore.compareAndSetId(id) : id;
             QueueAnchor queueAnchor = new QueueAnchor(queueId);
             Queue queue = new Queue(queueAnchor, core);
             core.scheduleAdminTask(new CreateQueueTask(core, new QueueAnchorPair(queue, queueAnchor)));
@@ -179,6 +183,11 @@ public class Wilco {
     }
 
     public ChannelSelect createSelect() {
-        return new ChannelSelect();
+        return new ChannelSelect(this, createChannelSelectQueue());
     }
+
+    private Queue createChannelSelectQueue() {
+        return createQueue(idStore.generateChannelSelectQueueId(), false);
+    }
+
 }

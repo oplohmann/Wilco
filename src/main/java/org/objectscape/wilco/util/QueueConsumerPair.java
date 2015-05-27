@@ -4,6 +4,7 @@ import org.objectscape.wilco.Queue;
 
 import java.util.function.Consumer;
 
+
 /**
  * Created by plohmann on 27.05.2015.
  */
@@ -25,7 +26,7 @@ public class QueueConsumerPair<T> {
         return consumer;
     }
 
-    public void accept(T item) {
+    public void accept(Queue channelQueue, T item) {
         queue.execute(()-> consumer.accept(item));
     }
 }

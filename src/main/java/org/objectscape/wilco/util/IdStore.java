@@ -13,13 +13,22 @@ public class IdStore {
 
     final private Set<String> channelIds = new ConcurrentSkipListSet<>();
     final private AtomicLong currentId = new AtomicLong(0);
+    final private AtomicLong currentChannelSelectQueueId = new AtomicLong(0);
 
     public String generateId() {
             String nextId = null;
             do {
                 nextId = String.valueOf(currentId.getAndIncrement());
-            } while (channelIds.contains(nextId));
+            } while (!channelIds.add(nextId));
             return nextId;
+    }
+
+    public String generateChannelSelectQueueId() {
+        String nextId = null;
+        do {
+            nextId = "selectqueue-" + String.valueOf(currentChannelSelectQueueId.getAndIncrement());
+        } while (!channelIds.add(nextId));
+        return nextId;
     }
 
     public String compareAndSetId(String id) {
