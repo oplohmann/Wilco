@@ -3,6 +3,7 @@ package org.objectscape.wilco;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.objectscape.wilco.core.dlq.DeadLetterEntry;
 import org.objectscape.wilco.core.tasks.util.ShutdownResponse;
 
 import java.util.concurrent.CompletableFuture;
@@ -27,6 +28,9 @@ public abstract class AbstractTest {
     public void shutdown() throws ExecutionException, InterruptedException, TimeoutException {
         if(!shutdown) {
             return;
+        }
+        for(DeadLetterEntry entry : wilco.getDLQEntries()) {
+            System.out.println(entry.getStackTrace());
         }
         Assert.assertTrue(wilco.getDLQEntries().isEmpty());
         CompletableFuture<ShutdownResponse> shutdownResponse = wilco.shutdown();

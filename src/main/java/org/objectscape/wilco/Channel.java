@@ -1,6 +1,7 @@
 package org.objectscape.wilco;
 
 import org.objectscape.wilco.core.QueueClosedException;
+import org.objectscape.wilco.util.QueueConsumerPair;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -19,7 +20,7 @@ public class Channel<T> {
     final private static ThreadLocalRandom Randomizer = ThreadLocalRandom.current();
 
     final private Queue queue;
-    private List<Consumer<T>> consumers = new CopyOnWriteArrayList<>();
+    private List<QueueConsumerPair<T>> consumers = new CopyOnWriteArrayList<>();
     private AtomicReference<Runnable> onCloseRef = new AtomicReference<>();
     final private CompletableFuture<T> closedFuture = new CompletableFuture();
     private T closeValue;
@@ -41,12 +42,31 @@ public class Channel<T> {
     }
 
     public void send(T item) {
-        queue.execute(() -> {
-            getNextConsumer(consumers).accept(item);
-        });
+        QueueConsumerPair<T> queueConsumerPair = getNextConsumerPair();
+        if(queueConsumerPair == null) {
+            queue.execute(() -> {
+                // If no consumers available, the queue remains suspended until some consumer is added.
+                // In that case the consumer is evaluated lazily once the queue is resumed.
+                getNextConsumer(consumers).accept(item);
+            });
+        }
+        else {
+            queueConsumerPair.accept(item);
+        }
     }
 
-    private Consumer<T> getNextConsumer(List<Consumer<T>> consumers) {
+    private QueueConsumerPair<T> getNextConsumerPair() {
+        if(consumers.isEmpty()) {
+            return null;
+        }
+        return getNextConsumerPair(consumers);
+    }
+
+    private Consumer<T> getNextConsumer(List<QueueConsumerPair<T>> consumers) {
+        return getNextConsumerPair(consumers).getConsumer();
+    }
+
+    private QueueConsumerPair<T> getNextConsumerPair(List<QueueConsumerPair<T>> consumers) {
         assert !consumers.isEmpty();
 
         // consumers never shrinks, only grows. So this is safe.
@@ -71,7 +91,7 @@ public class Channel<T> {
     }
 
     public CompletableFuture<T> onReceive(Consumer<T> consumer) {
-        consumers.add(consumer);
+        consumers.add(new QueueConsumerPair<T>(queue, consumer));
         if(suspended.get() && suspended.compareAndSet(true, false)) {
             queue.resume();
         }

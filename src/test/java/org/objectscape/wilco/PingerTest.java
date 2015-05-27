@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -52,11 +53,12 @@ public class PingerTest extends AbstractTest {
     public void pinging() throws InterruptedException, ExecutionException {
         Channel<String> channel = wilco.createChannel();
         List<String> output = new Vector<>();
+        CountDownLatch latch = new CountDownLatch(2);
         int iters = 3;
 
-        wilco.execute(() -> pinger(channel, iters, false));
+        wilco.execute(() -> pinger(channel, iters, latch));
         wilco.execute(() -> printer(channel, output));
-        wilco.execute(() -> pinger(channel, iters, true));
+        wilco.execute(() -> pinger(channel, iters, latch));
 
         channel.waitTillClosed();
 
@@ -67,12 +69,14 @@ public class PingerTest extends AbstractTest {
         channel.onReceive(message -> outpout.add(message));
     }
 
-    private void pinger(Channel<String> channel, int iters, boolean closeWhenDone) {
+    private void pinger(Channel<String> channel, int iters, CountDownLatch latch) {
         for (int i = 0; i < iters; i++) {
             channel.send("ping");
         }
-        if(closeWhenDone) {
-            channel.close();
-        }
+        latch.countDown();
+        try {
+            latch.await();
+        } catch (InterruptedException e) { }
+        channel.close();
     }
 }

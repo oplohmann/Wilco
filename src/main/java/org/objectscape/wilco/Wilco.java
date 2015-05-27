@@ -178,7 +178,7 @@ public class Wilco {
         return shutdownGuard.isClosed();
     }
 
-    public Select createSelect() {
-        return new Select();
+    public ChannelSelect createSelect() {
+        return new ChannelSelect();
     }
 }
