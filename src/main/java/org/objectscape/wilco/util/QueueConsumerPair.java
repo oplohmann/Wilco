@@ -9,8 +9,8 @@ import java.util.function.Consumer;
  */
 public class QueueConsumerPair<T> {
 
-    final private Queue queue;
-    final private Consumer<T> consumer;
+    final protected Queue queue;
+    final protected Consumer<T> consumer;
 
     public QueueConsumerPair(Queue queue, Consumer<T> consumer) {
         this.queue = queue;

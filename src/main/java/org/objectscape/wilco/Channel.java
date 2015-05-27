@@ -168,4 +168,8 @@ public class Channel<T> {
         result = 31 * result + onCloseRef.hashCode();
         return result;
     }
+
+    protected void onCase(Queue channelSelectQueue, Consumer<T> runnable) {
+
+    }
 }
