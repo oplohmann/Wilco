@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by plohmann on 19.02.2015.
@@ -24,12 +25,15 @@ public class WilcoCore {
 
     final private static Logger LOG = LoggerFactory.getLogger(WilcoCore.class);
 
+    private static AtomicInteger IdCount = new AtomicInteger(0);
+
     final private Config config;
     final private Scheduler scheduler;
     final private ThreadPoolExecutor executor;
     final private DeadLetterQueue deadLetterQueue = new DeadLetterQueue();
     final private Map<String, QueueAnchorPair> queuesById = new TreeMap<>();
     final private QueueAnchorPair asyncQueue;
+    final private String id;
 
     private TransferPriorityQueue<CoreTask> entryQueue = new TransferPriorityQueue<>();
 
@@ -37,6 +41,7 @@ public class WilcoCore {
     {
         this.config = config;
 
+        id = String.valueOf(IdCount.getAndIncrement());
         asyncQueue = createAsyncQueue(asyncQueueId);
 
         executor = new ThreadPoolExecutor(
@@ -118,5 +123,9 @@ public class WilcoCore {
 
     public void scheduleAsyncUserTask(Runnable runnable) {
         asyncQueue.getQueue().execute(runnable);
+    }
+
+    public String getId() {
+        return id;
     }
 }

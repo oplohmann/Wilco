@@ -190,4 +190,8 @@ public class Wilco {
         return createQueue(idStore.generateChannelSelectQueueId(), false);
     }
 
+    public String getId() {
+        return core.getId();
+    }
+
 }

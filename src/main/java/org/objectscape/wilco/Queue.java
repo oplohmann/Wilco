@@ -92,4 +92,13 @@ public class Queue extends AbstractQueue {
         result = 31 * result + core.hashCode() + getId().hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "Queue" + getIdWithCoreId();
+    }
+
+    protected String getIdWithCoreId() {
+        return "{queueId=\"" + getId() + "\" wilcoInstanceId=" + core.getId() + "}";
+    }
 }

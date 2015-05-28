@@ -26,7 +26,11 @@ public class QueueConsumerPair<T> {
         return consumer;
     }
 
-    public void accept(Queue channelQueue, T item) {
+    public void accept(T item) {
         queue.execute(()-> consumer.accept(item));
+    }
+
+    public void acceptDeferred(Queue channelQueue, T item) {
+        accept(item);
     }
 }

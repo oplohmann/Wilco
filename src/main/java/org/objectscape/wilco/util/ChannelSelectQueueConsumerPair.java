@@ -14,11 +14,12 @@ public class ChannelSelectQueueConsumerPair<T> extends QueueConsumerPair<T> {
     }
 
     @Override
-    public void accept(Queue channelQueue, T item) {
+    public void acceptDeferred(Queue channelQueue, T item) {
         if(queue == channelQueue) {
-            consumer.accept(item);
+            accept(item);
         } else {
             queue.execute(() -> consumer.accept(item));
         }
     }
+    
 }

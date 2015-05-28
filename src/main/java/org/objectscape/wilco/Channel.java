@@ -48,11 +48,11 @@ public class Channel<T> {
             queue.execute(() -> {
                 // If no consumers available, the queue remains suspended until some consumer is added.
                 // In that case the consumer is evaluated lazily once the queue is resumed.
-                getNextConsumer(consumers).accept(queue, item);
+                getNextConsumer(consumers).acceptDeferred(queue, item);
             });
         }
         else {
-            queueConsumerPair.accept(queue, item);
+            queueConsumerPair.accept(item);
         }
     }
 
@@ -177,5 +177,10 @@ public class Channel<T> {
         if(suspended.get() && suspended.compareAndSet(true, false)) {
             queue.resume();
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Channel" + queue.getIdWithCoreId();
     }
 }
