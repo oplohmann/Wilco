@@ -194,4 +194,7 @@ public class Wilco {
         return core.getId();
     }
 
+    public void onIdleAfter(long timeoutPeriod, TimeUnit unit, Runnable runnable) {
+        // TODO - not yet implemented
+    }
 }

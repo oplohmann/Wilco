@@ -40,6 +40,10 @@ public class QueueAnchor extends AbstractQueueAnchor {
         return waitingTasks.size() > 0;
     }
 
+    public boolean isIdle() {
+        return waitingTasks.isEmpty();
+    }
+
     public boolean isSuspended() {
         return suspended;
     }

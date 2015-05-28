@@ -23,6 +23,7 @@ public class ScheduledTask extends QueueAnchorTask {
     public boolean run(Context context) {
         if(queueAnchor.addTask(scheduledRunnable)) {
             executeNext(context, scheduledRunnable);
+            setLastTimeActive(context);
         } else {
             clear();
         }

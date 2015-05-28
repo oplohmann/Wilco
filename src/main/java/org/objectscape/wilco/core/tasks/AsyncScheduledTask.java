@@ -20,6 +20,7 @@ public class AsyncScheduledTask extends ScheduledRunnableTask {
     public boolean run(Context context) {
         int taskId = queueAnchor.addTask(scheduledRunnable);
         executeNext(context, scheduledRunnable, taskId);
+        setLastTimeActive(context);
         return true;
     }
 

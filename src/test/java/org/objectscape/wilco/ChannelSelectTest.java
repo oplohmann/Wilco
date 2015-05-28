@@ -74,6 +74,19 @@ public class ChannelSelectTest extends AbstractTest {
         Assert.assertTrue(noTimeOut);
     }
 
+    @Test
+    public void onTimeout() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+        long timeoutPeriod = 2L;
+
+        ChannelSelect select = wilco.createSelect().onTimeout(timeoutPeriod, TimeUnit.SECONDS, ()-> latch.countDown());
+
+        boolean noTimeoutOccured = latch.await(timeoutPeriod * 2, TimeUnit.SECONDS);
+        Assert.assertTrue(noTimeoutOccured);
+
+        select.clearTimeout();
+    }
+
     @Override
     protected int shutdownTimeoutInSecs() {
         return 5;

@@ -16,6 +16,7 @@ public class CompletedTask extends QueueAnchorTask {
     @Override
     public boolean run(Context context)
     {
+        setLastTimeActive(context);
         ScheduledRunnable previousRunnable = queueAnchor.removeCurrentTask();
         assert previousRunnable == scheduledRunnable;
 

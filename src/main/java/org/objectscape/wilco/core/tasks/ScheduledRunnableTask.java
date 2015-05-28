@@ -45,6 +45,10 @@ public abstract class ScheduledRunnableTask extends CoreTask {
         });
     }
 
+    protected void setLastTimeActive(Context context) {
+        context.setLastTimeActive(System.currentTimeMillis());
+    }
+
     protected void executeNext(final Context context, ScheduledRunnable nextRunnable, Integer taskId) {
         context.getExecutor().execute(() -> {
             try {
