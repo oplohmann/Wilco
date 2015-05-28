@@ -44,16 +44,16 @@ public class ChannelSelectTest extends AbstractTest {
 
     @Test
     public void deferredSelect() throws InterruptedException {
-        Channel<String> a = wilco.createChannel("a");
-        Channel<Integer> b = wilco.createChannel("b");
+        Channel<String> channelA = wilco.createChannel("a");
+        Channel<Integer> channelB = wilco.createChannel("b");
 
         String valueChannelA = "abc";
         Integer valueChannelB = 127;
 
         // Contrary to ChannelSelectTest.simpleSelect values are send to the channels before
         // ChannelSelect callbacks were defined.
-        wilco.execute(() -> a.send(valueChannelA));
-        wilco.execute(() -> b.send(valueChannelB));
+        wilco.execute(() -> channelA.send(valueChannelA));
+        wilco.execute(() -> channelB.send(valueChannelB));
 
         CountDownLatch latch = new CountDownLatch(2);
 
@@ -61,11 +61,11 @@ public class ChannelSelectTest extends AbstractTest {
         // which means that no internal buffering for sent items needs to be done
 
         wilco.createSelect().
-                onCase(a, (value -> {
+                onCase(channelA, (value -> {
                     Assert.assertEquals(valueChannelA, value);
                     latch.countDown();
                 })).
-                onCase(b, (value -> {
+                onCase(channelB, (value -> {
                     Assert.assertEquals(valueChannelB, value);
                     latch.countDown();
                 }));
@@ -76,6 +76,6 @@ public class ChannelSelectTest extends AbstractTest {
 
     @Override
     protected int shutdownTimeoutInSecs() {
-        return 500000;
+        return 5;
     }
 }
