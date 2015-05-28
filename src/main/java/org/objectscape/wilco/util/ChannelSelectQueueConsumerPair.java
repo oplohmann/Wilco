@@ -9,19 +9,16 @@ import java.util.function.Consumer;
  */
 public class ChannelSelectQueueConsumerPair<T> extends QueueConsumerPair<T> {
 
-    final private Queue channelSelectQueue;
-
-    public ChannelSelectQueueConsumerPair(Queue queue, Queue channelSelectQueue, Consumer<T> consumer) {
-        super(queue, consumer);
-        this.channelSelectQueue = channelSelectQueue;
+    public ChannelSelectQueueConsumerPair(Queue channelSelectQueue, Consumer<T> consumer) {
+        super(channelSelectQueue, consumer);
     }
 
     @Override
     public void accept(Queue channelQueue, T item) {
-        if(queue == channelSelectQueue) {
-            queue.execute(() -> consumer.accept(item));
+        if(queue == channelQueue) {
+            consumer.accept(item);
         } else {
-            channelSelectQueue.execute(() -> consumer.accept(item));
+            queue.execute(() -> consumer.accept(item));
         }
     }
 }

@@ -21,10 +21,10 @@ public class ChannelSelectTest extends AbstractTest {
             onCase(a, (value -> System.out.println(value))).
             onCase(b, (value -> System.out.println(value)));
 
-        wilco.execute(() -> a.send("a"));
+        wilco.execute(() -> a.send("abc"));
         wilco.execute(() -> b.send(127));
 
-        Thread.sleep(1000);
+        Thread.sleep(100000);
     }
 
     @Override

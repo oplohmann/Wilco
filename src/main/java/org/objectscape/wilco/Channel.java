@@ -169,7 +169,7 @@ public class Channel<T> {
     }
 
     protected void onCase(Queue channelSelectQueue, Consumer<T> consumer) {
-        consumers.add(new ChannelSelectQueueConsumerPair<>(queue, channelSelectQueue, consumer));
+        consumers.add(new ChannelSelectQueueConsumerPair<>(channelSelectQueue, consumer));
         receiverAdded();
     }
 
