@@ -26,8 +26,7 @@ public class DetectIdleTask extends CoreTask {
 
     @Override
     public boolean run(Context context) {
-        long now = System.currentTimeMillis();
-        if(now - context.getLastTimeActive() > timeoutPeriodInMillis) {
+        if(System.currentTimeMillis() - context.getLastTimeActive() > timeoutPeriodInMillis) {
             if(queuesById.isEmpty()) {
                 idleCallback.accept(new IdleInfo(context.getLastTimeActive(), new HashSet<>(), new HashSet<>(), 0));
                 return true;
