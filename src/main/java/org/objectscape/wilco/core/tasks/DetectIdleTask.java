@@ -27,19 +27,18 @@ public class DetectIdleTask extends CoreTask {
     @Override
     public boolean run(Context context) {
         if(System.currentTimeMillis() - context.getLastTimeActive() > timeoutPeriodInMillis) {
+            Set<String> suspendedQueues = new HashSet<>();
+            Set<String> idleQueues = new HashSet<>();
             if(queuesById.isEmpty()) {
-                idleCallback.accept(new IdleInfo(context.getLastTimeActive(), new HashSet<>(), new HashSet<>(), 0));
+                invokeCallback(context, context.getLastTimeActive(), suspendedQueues, idleQueues, queuesById.size());
                 return true;
             }
 
-            Set<String> suspendedQueues = new HashSet<>();
-            Set<String> idleQueues = new HashSet<>();
 
             for(QueueAnchorPair queueAnchorPair : queuesById.values()) {
                 if(!queueAnchorPair.getAnchor().isIdle()) {
                     return true;
                 }
-
                 if (queueAnchorPair.getAnchor().isSuspended()) {
                     suspendedQueues.add(queueAnchorPair.getId());
                 } else {
@@ -47,10 +46,17 @@ public class DetectIdleTask extends CoreTask {
                 }
             }
 
-            idleCallback.accept(new IdleInfo(context.getLastTimeActive(), suspendedQueues, idleQueues, queuesById.size()));
+            invokeCallback(context, context.getLastTimeActive(), suspendedQueues, idleQueues, queuesById.size());
         }
 
         return true;
+    }
+
+    private void invokeCallback(Context context, long noActivitySince, Set<String> suspendedQueuesIds, Set<String> idleQueuesIds, long totalQueuesCount) {
+        // don't block the scheduler thread
+        context.getExecutor().execute(() -> {
+            idleCallback.accept(new IdleInfo(context.getLastTimeActive(), suspendedQueuesIds, idleQueuesIds, totalQueuesCount));
+        });
     }
 
     @Override
