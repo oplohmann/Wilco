@@ -31,4 +31,10 @@ public abstract class AbstractQueueAnchor implements CollectorsUtil {
 
     @SchedulerControlled
     public abstract List<Runnable> getUserRunnables();
+
+    public abstract int getWaitingTasksCount();
+
+    public abstract boolean isSuspended();
+
+    public abstract boolean isIdle();
 }

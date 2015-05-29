@@ -6,6 +6,8 @@ import org.objectscape.wilco.core.dlq.DeadLetterEntry;
 import org.objectscape.wilco.core.dlq.DeadLetterListener;
 import org.objectscape.wilco.core.dlq.DeadLetterQueue;
 import org.objectscape.wilco.core.tasks.CoreTask;
+import org.objectscape.wilco.core.tasks.DetectIdleTask;
+import org.objectscape.wilco.core.tasks.util.IdleInfo;
 import org.objectscape.wilco.util.QueueAnchorPair;
 import org.objectscape.wilco.util.TransferPriorityQueue;
 import org.slf4j.Logger;
@@ -15,8 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 /**
  * Created by plohmann on 19.02.2015.
@@ -30,10 +33,13 @@ public class WilcoCore {
     final private Config config;
     final private Scheduler scheduler;
     final private ThreadPoolExecutor executor;
+    final private ScheduledThreadPoolExecutor scheduledExecutor;
     final private DeadLetterQueue deadLetterQueue = new DeadLetterQueue();
     final private Map<String, QueueAnchorPair> queuesById = new TreeMap<>();
     final private QueueAnchorPair asyncQueue;
     final private String id;
+
+    private ScheduledFuture idleFuture;
 
     private TransferPriorityQueue<CoreTask> entryQueue = new TransferPriorityQueue<>();
 
@@ -50,6 +56,8 @@ public class WilcoCore {
             config.getKeepAliveTime(),
             config.getUnit(),
             config.getQueue());
+
+        scheduledExecutor = new ScheduledThreadPoolExecutor(1);
 
         scheduler = new Scheduler(entryQueue, executor, deadLetterQueue);
         Thread thread = new Thread(scheduler);
@@ -127,5 +135,35 @@ public class WilcoCore {
 
     public String getId() {
         return id;
+    }
+
+    public ScheduledFuture onIdleAfter(long timeoutPeriod, TimeUnit unit, Consumer<IdleInfo> consumer) {
+        // synchronized is not a problem for lock contention here as an idle callback is only installed once
+        synchronized (scheduledExecutor) {
+            if(idleFuture != null) {
+                if (idleFuture.isCancelled()) {
+                    idleFuture = null;
+                }
+                else {
+                    throw new IdleException("wilco on idle callback already installed");
+                }
+            }
+
+            long timeoutPeriodInMillis = unit.toMillis(timeoutPeriod);
+
+            idleFuture = scheduledExecutor.scheduleAtFixedRate(
+                    () -> entryQueue.add(new DetectIdleTask(timeoutPeriodInMillis, queuesById, consumer)),
+                    0, timeoutPeriod, unit);
+
+            return idleFuture;
+        }
+    }
+
+    public void cancelIdleTimer() {
+        synchronized (scheduledExecutor) {
+            if(idleFuture != null && !idleFuture.isCancelled()) {
+                idleFuture.cancel(true);
+            }
+        }
     }
 }

@@ -24,6 +24,21 @@ public class AsyncQueueAnchor extends AbstractQueueAnchor {
         return toList(waitingTasks.values().stream().map(scheduledRunnable -> scheduledRunnable.getRunnable()));
     }
 
+    @Override
+    public int getWaitingTasksCount() {
+        return waitingTasks.size();
+    }
+
+    @Override
+    public boolean isSuspended() {
+        return false; // async queue is always available
+    }
+
+    @Override
+    public boolean isIdle() {
+        return waitingTasks.isEmpty();
+    }
+
     public int addTask(ScheduledRunnable scheduledRunnable) {
         taskCount++;
         waitingTasks.put(taskCount, scheduledRunnable);

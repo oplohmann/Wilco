@@ -52,6 +52,9 @@ public class QueueAnchor extends AbstractQueueAnchor {
         this.suspended = suspended;
     }
 
+    public int getWaitingTasksCount() {
+        return waitingTasks.size();
+    }
 
     @SchedulerControlled
     public List<Runnable> getUserRunnables() {

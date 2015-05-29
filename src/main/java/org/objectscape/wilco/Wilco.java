@@ -6,6 +6,7 @@ import org.objectscape.wilco.core.dlq.DeadLetterListener;
 import org.objectscape.wilco.core.tasks.CreateQueueTask;
 import org.objectscape.wilco.core.tasks.InitiateShutdownTask;
 import org.objectscape.wilco.core.tasks.TryInitiateShutdownTask;
+import org.objectscape.wilco.core.tasks.util.IdleInfo;
 import org.objectscape.wilco.core.tasks.util.ShutdownResponse;
 import org.objectscape.wilco.core.tasks.util.ShutdownTaskInfo;
 import org.objectscape.wilco.util.ClosedOnceGuard;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -117,11 +119,12 @@ public class Wilco {
 
         CompletableFuture<ShutdownResponse> future = new CompletableFuture<>();
 
-        boolean guardWasOpen = shutdownGuard.closeAndRun(()->
+        boolean guardWasOpen = shutdownGuard.closeAndRun(()-> {
+            core.cancelIdleTimer();
             core.scheduleAdminTask(new InitiateShutdownTask(
                     toString(),
-                    new ShutdownTaskInfo(core, future, duration, unit, System.currentTimeMillis())))
-        );
+                    new ShutdownTaskInfo(core, future, duration, unit, System.currentTimeMillis())));
+        });
 
         if(!guardWasOpen) {
             throw new ShutdownException("Wilco instance " + this + " already shut down");
@@ -143,13 +146,14 @@ public class Wilco {
 
         CompletableFuture<ShutdownResponse> future = new CompletableFuture<>();
 
-        boolean guardWasOpen = shutdownGuard.closeAndRun(()->
+        boolean guardWasOpen = shutdownGuard.closeAndRun(()-> {
+            core.cancelIdleTimer();
             core.scheduleAdminTask(new TryInitiateShutdownTask(
                     toString(),
                     new ShutdownTaskInfo(core, future, duration, unit, System.currentTimeMillis()),
                     callback,
-                    null, 1))
-        );
+                    null, 1));
+        });
 
         if(!guardWasOpen) {
             throw new ShutdownException("Wilco instance " + this + " already shut down");
@@ -194,7 +198,17 @@ public class Wilco {
         return core.getId();
     }
 
-    public void onIdleAfter(long timeoutPeriod, TimeUnit unit, Runnable runnable) {
-        // TODO - not yet implemented
+    public ScheduledFuture onIdleAfter(long timeoutPeriod, TimeUnit unit, Consumer<IdleInfo> consumer) {
+        Ref<ScheduledFuture> ref = new Ref<>();
+
+        boolean guardOpen = shutdownGuard.runIfOpen(()-> {
+            ref.set(core.onIdleAfter(timeoutPeriod, unit, consumer));
+        });
+
+        if(!guardOpen) {
+            throw new ShutdownException("Wilco instance " + this + " has been shut down");
+        }
+
+        return ref.get();
     }
 }
