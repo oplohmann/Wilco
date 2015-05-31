@@ -4,7 +4,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.Random;
 import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -50,8 +49,6 @@ func main() {
  */
 public class PingerTest extends AbstractTest {
 
-    final private static Random RAND = new Random(System.currentTimeMillis());
-
     @Test
     public void pinging() throws InterruptedException, ExecutionException {
         CountDownLatch mainLatch = new CountDownLatch(1);
@@ -65,7 +62,6 @@ public class PingerTest extends AbstractTest {
             int iters = 3;
 
             wilco.execute(() -> pinger(channel, iters, latch));
-            Thread.sleep(RAND.nextInt(20) + 1);
             wilco.execute(() -> pinger(channel, iters, latch));
 
             channel.waitTillClosed();
@@ -78,10 +74,6 @@ public class PingerTest extends AbstractTest {
         }
 
         mainLatch.await();
-    }
-
-    private void printer(Channel<String> channel, List<String> outpout) {
-        channel.onReceive(message -> outpout.add(message));
     }
 
     private void pinger(Channel<String> channel, int iters, CountDownLatch latch) {
