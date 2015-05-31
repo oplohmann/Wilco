@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Random;
 import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -49,20 +50,34 @@ func main() {
  */
 public class PingerTest extends AbstractTest {
 
+    final private static Random RAND = new Random(System.currentTimeMillis());
+
     @Test
     public void pinging() throws InterruptedException, ExecutionException {
-        Channel<String> channel = wilco.createChannel();
-        List<String> output = new Vector<>();
-        CountDownLatch latch = new CountDownLatch(2);
-        int iters = 3;
+        CountDownLatch mainLatch = new CountDownLatch(1);
+        int loops = 500;
+        for (int i = 0; i < loops; i++) {
+            List<String> output = new Vector<>();
+            Channel<String> channel = wilco.createChannel();
+            channel.onReceive(message -> output.add(message));
 
-        wilco.execute(() -> pinger(channel, iters, latch));
-        wilco.execute(() -> printer(channel, output));
-        wilco.execute(() -> pinger(channel, iters, latch));
+            CountDownLatch latch = new CountDownLatch(2);
+            int iters = 3;
 
-        channel.waitTillClosed();
+            wilco.execute(() -> pinger(channel, iters, latch));
+            Thread.sleep(RAND.nextInt(20) + 1);
+            wilco.execute(() -> pinger(channel, iters, latch));
 
-        Assert.assertEquals(iters * 2, output.size());
+            channel.waitTillClosed();
+            Assert.assertEquals(iters * 2, output.size());
+
+            System.out.println(i);
+            if(i + 1 == loops) {
+                mainLatch.countDown();
+            }
+        }
+
+        mainLatch.await();
     }
 
     private void printer(Channel<String> channel, List<String> outpout) {
