@@ -50,19 +50,21 @@ public abstract class ScheduledRunnableTask extends CoreTask {
     }
 
     protected void executeNext(final Context context, ScheduledRunnable nextRunnable, Integer taskId) {
-        context.getExecutor().execute(() -> {
-            try {
-                nextRunnable.run();
-            }
-            catch(RejectedExecutionException e) {
-                // TODO - not yet implemented
-            }
-            catch (Throwable throwable) {
-                context.addToDeadLetterQueue(queueId().orElse(null), throwable);
-            }
-            context.getEntryQueue().add(createCompletedTask(nextRunnable, taskId));
-            clear();
-        });
+        context.getExecutor().execute(() -> executeNextPrim(context, nextRunnable, taskId));
+    }
+
+    private void executeNextPrim(Context context, ScheduledRunnable nextRunnable, Integer taskId) {
+        try {
+            nextRunnable.run();
+        }
+        catch(RejectedExecutionException e) {
+            // TODO - not yet implemented
+        }
+        catch (Throwable throwable) {
+            context.addToDeadLetterQueue(queueId().orElse(null), throwable);
+        }
+        context.getEntryQueue().add(createCompletedTask(nextRunnable, taskId));
+        clear();
     }
 
     protected abstract CoreTask createCompletedTask(ScheduledRunnable nextRunnable, Integer taskId);

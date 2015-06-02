@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by plohmann on 29.04.2015.
@@ -53,16 +54,18 @@ public class PingerTest extends AbstractTest {
     public void pinging() throws InterruptedException, ExecutionException {
         List<String> output = new Vector<>();
         Channel<String> channel = wilco.createChannel();
-        channel.onReceive(message -> output.add(message));
 
-        CountDownLatch latch = new CountDownLatch(2);
-        int iters = 15;
+        int iters = 100;
+        int pingers = 2;
+        int expectedMessages = iters * pingers;
 
-        wilco.execute(() -> pinger(channel, iters, latch));
-        wilco.execute(() -> pinger(channel, iters, latch));
+        printer(output, channel, expectedMessages);
+
+        wilco.execute(() -> pinger(channel, iters));
+        wilco.execute(() -> pinger(channel, iters));
 
         channel.waitTillClosed();
-        Assert.assertEquals(iters * 2, output.size());
+        Assert.assertEquals(expectedMessages, output.size());
     }
 
     @Test
@@ -71,7 +74,6 @@ public class PingerTest extends AbstractTest {
         CountDownLatch mainLatch = new CountDownLatch(1);
         int loops = 1000;
         for (int i = 0; i < loops; i++) {
-            System.out.println(i);
             pinging();
             if(i + 1 == loops) {
                 mainLatch.countDown();
@@ -85,19 +87,30 @@ public class PingerTest extends AbstractTest {
     public void pingingDeferred() throws InterruptedException, ExecutionException {
         List<String> output = new Vector<>();
         Channel<String> channel = wilco.createChannel();
-        channel.onReceive(message -> output.add(message));
 
-        CountDownLatch latch = new CountDownLatch(2);
         int iters = 3;
+        int pingers = 2;
+        int expectedMessages = iters * pingers;
 
-        wilco.execute(() -> pinger(channel, iters, latch)); // 1
-        wilco.execute(() -> pinger(channel, iters, latch)); // 2
+        for (int i = 0; i < pingers; i++) {
+            wilco.execute(() -> pinger(channel, iters));
+        }
 
-        // called after 1 & 2 have started running --> deferred
-        wilco.execute(() -> printer(channel, output));
+        // called after pinger was started asynchronously --> deferred
+        printer(output, channel, expectedMessages);
 
         channel.waitTillClosed();
-        Assert.assertEquals(iters * 2, output.size());
+        Assert.assertEquals(expectedMessages, output.size());
+    }
+
+    private void printer(List<String> output, Channel<String> channel, int expectedMessages) {
+        AtomicInteger messageCount = new AtomicInteger();
+        channel.onReceive(message -> {
+            output.add(message);
+            if(messageCount.incrementAndGet() == expectedMessages) {
+                channel.close();
+            }
+        });
     }
 
     @Test
@@ -106,7 +119,6 @@ public class PingerTest extends AbstractTest {
         CountDownLatch mainLatch = new CountDownLatch(1);
         int loops = 1000;
         for (int i = 0; i < loops; i++) {
-            System.out.println(i);
             pingingDeferred();
             if(i + 1 == loops) {
                 mainLatch.countDown();
@@ -115,18 +127,14 @@ public class PingerTest extends AbstractTest {
         mainLatch.await();
     }
 
-    private void pinger(Channel<String> channel, int iters, CountDownLatch latch) {
+    private void pinger(Channel<String> channel, int iters) {
         for (int i = 0; i < iters; i++) {
             channel.send("ping");
         }
-        latch.countDown();
-        try {
-            latch.await();
-        } catch (InterruptedException e) { }
-        channel.close();
     }
 
-    private void printer(Channel<String> channel, List<String> outpout) {
-        channel.onReceive(message -> outpout.add(message));
+    protected int shutdownTimeoutInSecs() {
+        return 30;
     }
+
 }
