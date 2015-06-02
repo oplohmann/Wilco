@@ -27,10 +27,10 @@ public class PipelineTest extends AbstractTest {
         Assert.assertArrayEquals(ints.toArray(), new Integer[]{1, 256, 6561, 65536});
     }
 
-    private Channel<Integer> sequence(Channel<Integer> channel) throws InterruptedException {
+    private Channel<Integer> sequence(Channel<Integer> in) throws InterruptedException {
         Channel<Integer> out = wilco.createChannel();
-        channel.onReceive(n -> out.send(n * n));
-        channel.onClose(() -> out.close(0));
+        in.onReceive(n -> out.send(n * n));
+        in.onClose(() -> out.close(0));
         return out;
     }
 
