@@ -69,7 +69,7 @@ public class PingerTest extends AbstractTest {
     }
 
     @Test
-    public void pingingMultiple() throws InterruptedException, ExecutionException {
+    public void pingingMonkey() throws InterruptedException, ExecutionException {
         // some monkey testing to see whether it runs very often without race conditions
         CountDownLatch mainLatch = new CountDownLatch(1);
         int loops = 1000;
@@ -107,14 +107,14 @@ public class PingerTest extends AbstractTest {
         AtomicInteger messageCount = new AtomicInteger();
         channel.onReceive(message -> {
             output.add(message);
-            if(messageCount.incrementAndGet() == expectedMessages) {
+            if (messageCount.incrementAndGet() == expectedMessages) {
                 channel.close();
             }
         });
     }
 
     @Test
-    public void pingingDeferredMultiple() throws InterruptedException, ExecutionException {
+    public void pingingDeferredMonkey() throws InterruptedException, ExecutionException {
         // some monkey testing to see whether it runs very often without race conditions
         CountDownLatch mainLatch = new CountDownLatch(1);
         int loops = 1000;

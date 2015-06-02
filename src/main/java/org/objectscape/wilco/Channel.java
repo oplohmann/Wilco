@@ -21,11 +21,12 @@ public class Channel<T> {
     final private static ThreadLocalRandom Randomizer = ThreadLocalRandom.current();
 
     final private Queue queue;
-    private List<QueueConsumerPair<T>> consumers = new CopyOnWriteArrayList<>();
-    private AtomicReference<Runnable> onCloseRef = new AtomicReference<>();
+    final private List<QueueConsumerPair<T>> consumers = new CopyOnWriteArrayList<>();
+    final private AtomicReference<Runnable> onCloseRef = new AtomicReference<>();
     final private CompletableFuture<T> closedFuture = new CompletableFuture();
     private T closeValue;
     final private AtomicBoolean suspended = new AtomicBoolean(true);
+    final private AtomicReference lastItem = new AtomicReference();
     private int currentSelectedConsumer = -1;
 
     public Channel(Queue queue) {

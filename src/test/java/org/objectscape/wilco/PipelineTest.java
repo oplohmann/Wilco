@@ -45,4 +45,12 @@ public class PipelineTest extends AbstractTest {
         return out;
     }
 
+    @Test
+    public void generateSequenceMonkey() throws InterruptedException, ExecutionException, TimeoutException {
+        // some monkey testing to detect problems out of async calls
+        for (int i = 0; i < 500; i++) {
+            generateSequence();
+        }
+    }
+
 }

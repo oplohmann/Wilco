@@ -30,6 +30,8 @@ public class CloseQueueTask extends CoreTask {
 
     @Override
     public int priority() {
-        return MAX_PRIORITY;
+        // Must be MEDIUM_PRIORITY same as with ScheduledTask and AsyncScheduledTask
+        // for concatenation of channels to work.
+        return MEDIUM_PRIORITY;
     }
 }
