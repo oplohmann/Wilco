@@ -4,7 +4,7 @@ import org.objectscape.wilco.core.Context;
 import org.objectscape.wilco.core.ShutdownTimeout;
 import org.objectscape.wilco.core.tasks.util.ShutdownResponse;
 import org.objectscape.wilco.core.tasks.util.ShutdownTaskInfo;
-import org.objectscape.wilco.util.QueueAnchorPair;
+import org.objectscape.wilco.QueueSpine;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -19,7 +19,7 @@ public class TryShutdownSchedulerTask extends ShutdownSchedulerTask {
     final int trialCount;
     final boolean shutdownNow;
 
-    public TryShutdownSchedulerTask(ShutdownTaskInfo shutdownTaskInfo, List<QueueAnchorPair> nonEmptyQueues, Consumer<ShutdownTimeout> shutdownTimeout, int trialCount, boolean shutdownNow) {
+    public TryShutdownSchedulerTask(ShutdownTaskInfo shutdownTaskInfo, List<QueueSpine> nonEmptyQueues, Consumer<ShutdownTimeout> shutdownTimeout, int trialCount, boolean shutdownNow) {
         super(shutdownTaskInfo, nonEmptyQueues);
         this.shutdownTimeout = shutdownTimeout;
         this.trialCount = trialCount;

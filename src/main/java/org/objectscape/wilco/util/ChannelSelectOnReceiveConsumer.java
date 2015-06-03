@@ -7,9 +7,9 @@ import java.util.function.Consumer;
 /**
  * Created by plohmann on 27.05.2015.
  */
-public class ChannelSelectQueueConsumerPair<T> extends QueueConsumerPair<T> {
+public class ChannelSelectOnReceiveConsumer<T> extends OnReceiveConsumer<T> {
 
-    public ChannelSelectQueueConsumerPair(Queue channelSelectQueue, Consumer<T> consumer) {
+    public ChannelSelectOnReceiveConsumer(Queue channelSelectQueue, Consumer<T> consumer) {
         super(channelSelectQueue, consumer);
     }
 

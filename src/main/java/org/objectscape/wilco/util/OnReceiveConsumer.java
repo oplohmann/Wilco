@@ -8,12 +8,12 @@ import java.util.function.Consumer;
 /**
  * Created by plohmann on 27.05.2015.
  */
-public class QueueConsumerPair<T> {
+public class OnReceiveConsumer<T> {
 
     final protected Queue queue;
     final protected Consumer<T> consumer;
 
-    public QueueConsumerPair(Queue queue, Consumer<T> consumer) {
+    public OnReceiveConsumer(Queue queue, Consumer<T> consumer) {
         this.queue = queue;
         this.consumer = consumer;
     }

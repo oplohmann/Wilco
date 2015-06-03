@@ -18,8 +18,8 @@ public class CloseQueueTask extends CoreTask {
 
     @Override
     public boolean run(Context context) {
-        boolean queueFound = core.removeQueue(queueId);
-        assert queueFound;
+        boolean queueSpineFound = core.removeQueue(queueId);
+        assert queueSpineFound;
         clear();
         return true;
     }

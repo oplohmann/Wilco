@@ -5,7 +5,7 @@ import org.objectscape.wilco.core.Context;
 import org.objectscape.wilco.core.tasks.util.ShutdownResponse;
 import org.objectscape.wilco.core.tasks.util.ShutdownTaskInfo;
 import org.objectscape.wilco.util.CollectorsUtil;
-import org.objectscape.wilco.util.QueueAnchorPair;
+import org.objectscape.wilco.QueueSpine;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,9 +18,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class ShutdownSchedulerTask extends ShutdownTask implements CollectorsUtil {
 
-    final protected List<QueueAnchorPair> nonEmptyQueues;
+    final protected List<QueueSpine> nonEmptyQueues;
 
-    public ShutdownSchedulerTask(ShutdownTaskInfo shutdownTaskInfo, List<QueueAnchorPair> nonEmptyQueues) {
+    public ShutdownSchedulerTask(ShutdownTaskInfo shutdownTaskInfo, List<QueueSpine> nonEmptyQueues) {
         super(shutdownTaskInfo);
         this.nonEmptyQueues = nonEmptyQueues;
     }
@@ -55,13 +55,13 @@ public class ShutdownSchedulerTask extends ShutdownTask implements CollectorsUti
 
     protected ShutdownResponse createShutdownResponse() {
         Map<AbstractQueue, List<Runnable>> notCompletedRunnablesByQueue = new HashMap<>();
-        for(QueueAnchorPair queueAnchorPair : nonEmptyQueues) {
-            List<Runnable> notCompletedRunnables = notCompletedRunnablesByQueue.get(queueAnchorPair.getQueue());
+        for(QueueSpine queueSpine : nonEmptyQueues) {
+            List<Runnable> notCompletedRunnables = notCompletedRunnablesByQueue.get(queueSpine.getQueue());
             if(notCompletedRunnables == null) {
                 notCompletedRunnables = new ArrayList<>();
-                notCompletedRunnablesByQueue.put(queueAnchorPair.getQueue(), notCompletedRunnables);
+                notCompletedRunnablesByQueue.put(queueSpine.getQueue(), notCompletedRunnables);
             }
-            notCompletedRunnables.addAll(queueAnchorPair.getUserRunnables());
+            notCompletedRunnables.addAll(queueSpine.getUserRunnables());
         }
         return new ShutdownResponse(notCompletedRunnablesByQueue);
     }

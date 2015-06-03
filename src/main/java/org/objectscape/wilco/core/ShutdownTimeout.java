@@ -1,11 +1,11 @@
 package org.objectscape.wilco.core;
 
 import org.objectscape.wilco.AbstractQueue;
+import org.objectscape.wilco.QueueSpine;
 import org.objectscape.wilco.core.tasks.TryInitiateShutdownTask;
 import org.objectscape.wilco.core.tasks.TryShutdownSchedulerTask;
 import org.objectscape.wilco.core.tasks.util.ShutdownResponse;
 import org.objectscape.wilco.core.tasks.util.ShutdownTaskInfo;
-import org.objectscape.wilco.util.QueueAnchorPair;
 
 import java.util.List;
 import java.util.Map;
@@ -24,9 +24,9 @@ public class ShutdownTimeout {
     final private int tryCount;
     final private CompletableFuture<ShutdownResponse> future;
     final private Consumer<ShutdownTimeout> callback;
-    final protected List<QueueAnchorPair> nonEmptyQueues;
+    final protected List<QueueSpine> nonEmptyQueues;
 
-    public ShutdownTimeout(WilcoCore core, CompletableFuture<ShutdownResponse> future, ShutdownResponse shutdownResponse, List<QueueAnchorPair> nonEmptyQueues, Consumer<ShutdownTimeout> callback, int tryCount) {
+    public ShutdownTimeout(WilcoCore core, CompletableFuture<ShutdownResponse> future, ShutdownResponse shutdownResponse, List<QueueSpine> nonEmptyQueues, Consumer<ShutdownTimeout> callback, int tryCount) {
         this.core = core;
         this.future = future;
         this.shutdownResponse = shutdownResponse;

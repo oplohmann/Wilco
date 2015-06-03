@@ -3,7 +3,7 @@ package org.objectscape.wilco.core.tasks;
 import org.objectscape.wilco.core.Context;
 import org.objectscape.wilco.core.tasks.util.ShutdownTaskInfo;
 import org.objectscape.wilco.util.CollectorsUtil;
-import org.objectscape.wilco.util.QueueAnchorPair;
+import org.objectscape.wilco.QueueSpine;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,16 +13,16 @@ import java.util.List;
  */
 public class RunEmptyShutdownTask extends ShutdownTask implements CollectorsUtil {
 
-    final private List<QueueAnchorPair> allQueues;
+    final private List<QueueSpine> allQueues;
 
-    public RunEmptyShutdownTask(ShutdownTaskInfo shutdownTaskInfo, List<QueueAnchorPair> allQueues) {
+    public RunEmptyShutdownTask(ShutdownTaskInfo shutdownTaskInfo, List<QueueSpine> allQueues) {
         super(shutdownTaskInfo);
         this.allQueues = allQueues;
     }
 
     @Override
     public boolean run(Context context) {
-        List<QueueAnchorPair> nonEmptyQueues = toList(allQueues.stream().filter(queueAnchor -> !queueAnchor.getQueue().isEmpty()));
+        List<QueueSpine> nonEmptyQueues = toList(allQueues.stream().filter(queueAnchor -> !queueAnchor.getQueue().isEmpty()));
         if(nonEmptyQueues.isEmpty()) {
             scheduleShutdown(nonEmptyQueues);
             return true;
@@ -40,15 +40,15 @@ public class RunEmptyShutdownTask extends ShutdownTask implements CollectorsUtil
         return CoreTask.MIN_PRIORITY;
     }
 
-    private void scheduleShutdown(List<QueueAnchorPair> nonEmptyQueues) {
+    private void scheduleShutdown(List<QueueSpine> nonEmptyQueues) {
         getCore().scheduleAdminTask(getShutdownSchedulerTask(nonEmptyQueues));
     }
 
-    protected ShutdownSchedulerTask getShutdownSchedulerTask(List<QueueAnchorPair> nonEmptyQueues) {
+    protected ShutdownSchedulerTask getShutdownSchedulerTask(List<QueueSpine> nonEmptyQueues) {
         return new ShutdownSchedulerTask(shutdownTaskInfo, nonEmptyQueues);
     }
 
-    private void waitTilRunEmptyThenShutdown(Context context, List<QueueAnchorPair> nonEmptyQueues) {
+    private void waitTilRunEmptyThenShutdown(Context context, List<QueueSpine> nonEmptyQueues) {
         // This tasks currently blocks the Scheduler and therefore pending tasks cannot be dispatched.
         // For the thread pool to be able to run empty, this task needs to release the Scheduler.
         // For that purpose waiting for all queues to run empty before shutting down the Scheduler and the thread
@@ -57,15 +57,15 @@ public class RunEmptyShutdownTask extends ShutdownTask implements CollectorsUtil
 
     }
 
-    protected void runEmpty(List<QueueAnchorPair> nonEmptyQueues) {
+    protected void runEmpty(List<QueueSpine> nonEmptyQueues) {
         long durationInMillis = getDurationInMillis();
         boolean proceed = true;
         while (proceed) {
-            List<QueueAnchorPair> currentNonEmptyQueues = new ArrayList<>(nonEmptyQueues);
-            for(QueueAnchorPair queueAnchorPair : currentNonEmptyQueues) {
-                assert queueAnchorPair.getQueue().isClosed();
-                if(queueAnchorPair.getQueue().isEmpty()) {
-                    nonEmptyQueues.remove(queueAnchorPair);
+            List<QueueSpine> currentNonEmptyQueues = new ArrayList<>(nonEmptyQueues);
+            for(QueueSpine queueSpine : currentNonEmptyQueues) {
+                assert queueSpine.getQueue().isClosed();
+                if(queueSpine.getQueue().isEmpty()) {
+                    nonEmptyQueues.remove(queueSpine);
                 }
             }
             if(!nonEmptyQueues.isEmpty()) {

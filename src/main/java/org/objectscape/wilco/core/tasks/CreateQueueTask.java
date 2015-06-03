@@ -2,7 +2,7 @@ package org.objectscape.wilco.core.tasks;
 
 import org.objectscape.wilco.core.Context;
 import org.objectscape.wilco.core.WilcoCore;
-import org.objectscape.wilco.util.QueueAnchorPair;
+import org.objectscape.wilco.QueueSpine;
 
 /**
  * Created by plohmann on 19.02.2015.
@@ -10,16 +10,16 @@ import org.objectscape.wilco.util.QueueAnchorPair;
 public class CreateQueueTask extends CoreTask {
 
     private WilcoCore core;
-    private QueueAnchorPair queueAnchorPair;
+    private QueueSpine queueSpine;
 
-    public CreateQueueTask(WilcoCore core, QueueAnchorPair queueAnchorPair) {
+    public CreateQueueTask(WilcoCore core, QueueSpine queueSpine) {
         this.core = core;
-        this.queueAnchorPair = queueAnchorPair;
+        this.queueSpine = queueSpine;
     }
 
     @Override
     public boolean run(Context context) {
-        boolean success = core.addQueue(queueAnchorPair);
+        boolean success = core.addQueue(queueSpine);
         assert success;
         clear();
         return true;
@@ -32,7 +32,7 @@ public class CreateQueueTask extends CoreTask {
 
     private void clear() {
         core = null;
-        queueAnchorPair = null;
+        queueSpine = null;
     }
 
 }

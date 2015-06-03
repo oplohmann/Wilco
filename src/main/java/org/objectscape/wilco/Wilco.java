@@ -11,7 +11,6 @@ import org.objectscape.wilco.core.tasks.util.ShutdownResponse;
 import org.objectscape.wilco.core.tasks.util.ShutdownTaskInfo;
 import org.objectscape.wilco.util.ClosedOnceGuard;
 import org.objectscape.wilco.util.IdStore;
-import org.objectscape.wilco.util.QueueAnchorPair;
 import org.objectscape.wilco.util.Ref;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,7 +93,7 @@ public class Wilco {
             String queueId = verify ? idStore.compareAndSetId(id) : id;
             QueueAnchor queueAnchor = new QueueAnchor(queueId);
             Queue queue = new Queue(queueAnchor, core);
-            core.scheduleAdminTask(new CreateQueueTask(core, new QueueAnchorPair(queue, queueAnchor)));
+            core.scheduleAdminTask(new CreateQueueTask(core, new QueueSpine(queue, queueAnchor)));
             queueRef.set(queue);
         });
 

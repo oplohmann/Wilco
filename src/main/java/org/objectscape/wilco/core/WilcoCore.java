@@ -2,13 +2,13 @@ package org.objectscape.wilco.core;
 
 import org.objectscape.wilco.AsyncQueue;
 import org.objectscape.wilco.Config;
+import org.objectscape.wilco.QueueSpine;
 import org.objectscape.wilco.core.dlq.DeadLetterEntry;
 import org.objectscape.wilco.core.dlq.DeadLetterListener;
 import org.objectscape.wilco.core.dlq.DeadLetterQueue;
 import org.objectscape.wilco.core.tasks.CoreTask;
 import org.objectscape.wilco.core.tasks.DetectIdleTask;
 import org.objectscape.wilco.core.tasks.util.IdleInfo;
-import org.objectscape.wilco.util.QueueAnchorPair;
 import org.objectscape.wilco.util.TransferPriorityQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +35,8 @@ public class WilcoCore {
     final private ThreadPoolExecutor executor;
     final private ScheduledThreadPoolExecutor scheduledExecutor;
     final private DeadLetterQueue deadLetterQueue = new DeadLetterQueue();
-    final private Map<String, QueueAnchorPair> queuesById = new TreeMap<>();
-    final private QueueAnchorPair asyncQueue;
+    final private Map<String, QueueSpine> queuesById = new TreeMap<>();
+    final private QueueSpine asyncQueue;
     final private String id;
 
     private ScheduledFuture idleFuture;
@@ -65,12 +65,12 @@ public class WilcoCore {
         thread.start();
     }
 
-    private QueueAnchorPair createAsyncQueue(String asyncQueueId) {
+    private QueueSpine createAsyncQueue(String asyncQueueId) {
         AsyncQueueAnchor queueAnchor = new AsyncQueueAnchor(asyncQueueId);
         AsyncQueue queue = new AsyncQueue(queueAnchor, this);
-        QueueAnchorPair queueAnchorPair = new QueueAnchorPair(queue, queueAnchor);
-        queuesById.put(asyncQueueId, queueAnchorPair);
-        return queueAnchorPair;
+        QueueSpine queueSpine = new QueueSpine(queue, queueAnchor);
+        queuesById.put(asyncQueueId, queueSpine);
+        return queueSpine;
     }
 
     public void scheduleUserTask(CoreTask scheduledTask) {
@@ -97,18 +97,24 @@ public class WilcoCore {
         deadLetterQueue.clear();
     }
 
-    public boolean addQueue(QueueAnchorPair queueAnchorPair) {
-        return queuesById.put(queueAnchorPair.getId(), queueAnchorPair) == null;
+    public boolean addQueue(QueueSpine queueSpine) {
+        return queuesById.put(queueSpine.getId(), queueSpine) == null;
     }
 
     public boolean removeQueue(String queueId) {
-        return queuesById.remove(queueId) != null;
+        QueueSpine queueSpine = queuesById.remove(queueId);
+        if(queueSpine != null) {
+            // TODO - have to think about how to do this as this creates NullPointerExceptions
+            // queueSpine.clear();
+            return true;
+        }
+        return false;
     }
 
     @SchedulerControlled
-    public List<QueueAnchorPair> closeAllQueues() {
+    public List<QueueSpine> closeAllQueues() {
         LOG.info("Shutting down. Sending " + queuesById.size() + " queues the close signal");
-        List<QueueAnchorPair> queues = new ArrayList<>();
+        List<QueueSpine> queues = new ArrayList<>();
         queuesById.values().stream().forEach(queueWithAnchor -> {
             try {
                 queues.add(queueWithAnchor);

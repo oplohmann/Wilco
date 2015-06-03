@@ -1,8 +1,8 @@
 package org.objectscape.wilco;
 
 import org.objectscape.wilco.core.QueueClosedException;
-import org.objectscape.wilco.util.ChannelSelectQueueConsumerPair;
-import org.objectscape.wilco.util.QueueConsumerPair;
+import org.objectscape.wilco.util.ChannelSelectOnReceiveConsumer;
+import org.objectscape.wilco.util.OnReceiveConsumer;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -21,7 +21,7 @@ public class Channel<T> {
     final private static ThreadLocalRandom Randomizer = ThreadLocalRandom.current();
 
     final private Queue queue;
-    final private List<QueueConsumerPair<T>> consumers = new CopyOnWriteArrayList<>();
+    final private List<OnReceiveConsumer<T>> onReceiveConsumers = new CopyOnWriteArrayList<>();
     final private AtomicReference<Runnable> onCloseRef = new AtomicReference<>();
     final private CompletableFuture<T> closedFuture = new CompletableFuture();
     private T closeValue;
@@ -44,40 +44,40 @@ public class Channel<T> {
     }
 
     public void send(T item) {
-        QueueConsumerPair<T> queueConsumerPair = getNextConsumerPair();
-        if(queueConsumerPair == null) {
+        OnReceiveConsumer<T> onReceiveConsumer = getNextConsumerPair();
+        if(onReceiveConsumer == null) {
             queue.execute(() -> {
-                // If no consumers available, the queue remains suspended until some consumer is added.
+                // If no onReceiveConsumers available, the queue remains suspended until some consumer is added.
                 // In that case the consumer is evaluated lazily once the queue is resumed.
-                getNextConsumer(consumers).acceptDeferred(queue, item);
+                getNextConsumer(onReceiveConsumers).acceptDeferred(queue, item);
             });
         }
         else {
-            queueConsumerPair.accept(item);
+            onReceiveConsumer.accept(item);
         }
     }
 
-    private QueueConsumerPair<T> getNextConsumerPair() {
-        if(consumers.isEmpty()) {
+    private OnReceiveConsumer<T> getNextConsumerPair() {
+        if(onReceiveConsumers.isEmpty()) {
             return null;
         }
+        return getNextConsumerPair(onReceiveConsumers);
+    }
+
+    private OnReceiveConsumer<T> getNextConsumer(List<OnReceiveConsumer<T>> consumers) {
         return getNextConsumerPair(consumers);
     }
 
-    private QueueConsumerPair<T> getNextConsumer(List<QueueConsumerPair<T>> consumers) {
-        return getNextConsumerPair(consumers);
-    }
-
-    private QueueConsumerPair<T> getNextConsumerPair(List<QueueConsumerPair<T>> consumers) {
+    private OnReceiveConsumer<T> getNextConsumerPair(List<OnReceiveConsumer<T>> consumers) {
         assert !consumers.isEmpty();
 
-        // consumers never shrinks, only grows. So this is safe.
+        // onReceiveConsumers never shrinks, only grows. So this is safe.
         if(consumers.size() == 1) {
             return consumers.get(0);
         }
 
         if(currentSelectedConsumer != -1) {
-            // alternate between consumers in a cyclic way
+            // alternate between onReceiveConsumers in a cyclic way
             if(currentSelectedConsumer == consumers.size()) {
                 currentSelectedConsumer = 0;
             };
@@ -93,7 +93,7 @@ public class Channel<T> {
     }
 
     public CompletableFuture<T> onReceive(Consumer<T> consumer) {
-        consumers.add(new QueueConsumerPair<T>(queue, consumer));
+        onReceiveConsumers.add(new OnReceiveConsumer<T>(queue, consumer));
         receiverAdded();
         return closedFuture;
     }
@@ -170,7 +170,7 @@ public class Channel<T> {
     }
 
     protected void onCase(Queue channelSelectQueue, Consumer<T> consumer) {
-        consumers.add(new ChannelSelectQueueConsumerPair<>(channelSelectQueue, consumer));
+        onReceiveConsumers.add(new ChannelSelectOnReceiveConsumer<>(channelSelectQueue, consumer));
         receiverAdded();
     }
 
@@ -184,4 +184,5 @@ public class Channel<T> {
     public String toString() {
         return "Channel" + queue.getIdWithCoreId();
     }
+
 }

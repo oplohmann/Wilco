@@ -1,6 +1,5 @@
-package org.objectscape.wilco.util;
+package org.objectscape.wilco;
 
-import org.objectscape.wilco.AbstractQueue;
 import org.objectscape.wilco.core.AbstractQueueAnchor;
 import org.objectscape.wilco.core.SchedulerControlled;
 
@@ -9,12 +8,12 @@ import java.util.List;
 /**
  * Created by Nutzer on 18.05.2015.
  */
-public class QueueAnchorPair {
+public class QueueSpine {
 
-    final private AbstractQueue queue;
-    final private AbstractQueueAnchor anchor;
+    private AbstractQueue queue;
+    private AbstractQueueAnchor anchor;
 
-    public QueueAnchorPair(AbstractQueue queue, AbstractQueueAnchor anchor) {
+    public QueueSpine(AbstractQueue queue, AbstractQueueAnchor anchor) {
         this.queue = queue;
         this.anchor = anchor;
     }
@@ -38,6 +37,12 @@ public class QueueAnchorPair {
     @SchedulerControlled
     public List<Runnable> getUserRunnables() {
         return anchor.getUserRunnables();
+    }
+
+    public void clear() {
+        queue.clear();
+        queue = null;
+        anchor = null;
     }
 }
 
