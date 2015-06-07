@@ -13,6 +13,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * Created by plohmann on 23.04.2015.
  */
+//@Ignore
 public class PipelineTest extends AbstractTest {
 
     @Test
@@ -22,9 +23,21 @@ public class PipelineTest extends AbstractTest {
 
         Channel<Integer> out = sequence(sequence(sequence(generate(1, 2, 3, 4))));
         CompletableFuture<Integer> closeFuture = out.onReceive(n -> ints.add(n));
-        closeFuture.get(5, TimeUnit.SECONDS);
+        closeFuture.get(500, TimeUnit.SECONDS);
 
-        Assert.assertArrayEquals(ints.toArray(), new Integer[]{1, 256, 6561, 65536});
+        Assert.assertArrayEquals(new Integer[]{1, 256, 6561, 65536}, ints.toArray());
+    }
+
+    @Test
+    public void generateSequenceOneLevel() throws ExecutionException, InterruptedException, TimeoutException {
+        // modeled after this sample in Go: https://blog.golang.org/pipelines
+        List<Integer> ints = new Vector<>();
+
+        Channel<Integer> out = sequence(generate(1, 2, 3, 4));
+        CompletableFuture<Integer> closeFuture = out.onReceive(n -> ints.add(n));
+        closeFuture.get(5000, TimeUnit.SECONDS);
+
+        Assert.assertArrayEquals(new Integer[]{1, 256, 6561, 65536}, ints.toArray());
     }
 
     private Channel<Integer> sequence(Channel<Integer> in) throws InterruptedException {
@@ -48,9 +61,13 @@ public class PipelineTest extends AbstractTest {
     @Test
     public void generateSequenceMonkey() throws InterruptedException, ExecutionException, TimeoutException {
         // some monkey testing to detect problems out of async calls
-        for (int i = 0; i < 500; i++) {
+        for (int i = 0; i < 50; i++) {
             generateSequence();
         }
+    }
+
+    protected int shutdownTimeoutInSecs() {
+        return 5000;
     }
 
 }

@@ -17,7 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.*;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -73,11 +76,7 @@ public class WilcoCore {
         return queueSpine;
     }
 
-    public void scheduleUserTask(CoreTask scheduledTask) {
-        entryQueue.add(scheduledTask);
-    }
-
-    public void scheduleAdminTask(CoreTask coreTask) {
+    public void scheduleTask(CoreTask coreTask) {
         entryQueue.add(coreTask);
     }
 

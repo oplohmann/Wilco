@@ -1,6 +1,4 @@
-package org.objectscape.wilco.util;
-
-import org.objectscape.wilco.Queue;
+package org.objectscape.wilco;
 
 import java.util.function.Consumer;
 
@@ -27,7 +25,7 @@ public class OnReceiveConsumer<T> {
     }
 
     public void accept(T item) {
-        queue.execute(()-> consumer.accept(item));
+        queue.executeIgnoreCloseUser(() -> consumer.accept(item));
     }
 
     public void acceptDeferred(Queue channelQueue, T item) {

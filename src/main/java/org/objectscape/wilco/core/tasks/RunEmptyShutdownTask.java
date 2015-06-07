@@ -1,9 +1,9 @@
 package org.objectscape.wilco.core.tasks;
 
+import org.objectscape.wilco.QueueSpine;
 import org.objectscape.wilco.core.Context;
 import org.objectscape.wilco.core.tasks.util.ShutdownTaskInfo;
 import org.objectscape.wilco.util.CollectorsUtil;
-import org.objectscape.wilco.QueueSpine;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +41,7 @@ public class RunEmptyShutdownTask extends ShutdownTask implements CollectorsUtil
     }
 
     private void scheduleShutdown(List<QueueSpine> nonEmptyQueues) {
-        getCore().scheduleAdminTask(getShutdownSchedulerTask(nonEmptyQueues));
+        getCore().scheduleTask(getShutdownSchedulerTask(nonEmptyQueues));
     }
 
     protected ShutdownSchedulerTask getShutdownSchedulerTask(List<QueueSpine> nonEmptyQueues) {

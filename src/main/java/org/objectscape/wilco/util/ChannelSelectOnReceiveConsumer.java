@@ -1,5 +1,6 @@
 package org.objectscape.wilco.util;
 
+import org.objectscape.wilco.OnReceiveConsumer;
 import org.objectscape.wilco.Queue;
 
 import java.util.function.Consumer;

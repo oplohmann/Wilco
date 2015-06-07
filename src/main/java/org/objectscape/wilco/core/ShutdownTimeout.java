@@ -40,7 +40,7 @@ public class ShutdownTimeout {
     }
 
     public void shutdownNow() {
-        core.scheduleAdminTask(new TryShutdownSchedulerTask(
+        core.scheduleTask(new TryShutdownSchedulerTask(
                 new ShutdownTaskInfo(core, future, 0, TimeUnit.MILLISECONDS, System.currentTimeMillis()),
                 nonEmptyQueues,
                 null,
@@ -69,7 +69,7 @@ public class ShutdownTimeout {
     }
 
     public void retryShutdown(long duration, TimeUnit unit) {
-        core.scheduleAdminTask(new TryInitiateShutdownTask(
+        core.scheduleTask(new TryInitiateShutdownTask(
                 toString(),
                 new ShutdownTaskInfo(core, future, duration, unit, System.currentTimeMillis()),
                 callback,

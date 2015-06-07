@@ -93,7 +93,7 @@ public class Wilco {
             String queueId = verify ? idStore.compareAndSetId(id) : id;
             QueueAnchor queueAnchor = new QueueAnchor(queueId);
             Queue queue = new Queue(queueAnchor, core);
-            core.scheduleAdminTask(new CreateQueueTask(core, new QueueSpine(queue, queueAnchor)));
+            core.scheduleTask(new CreateQueueTask(core, new QueueSpine(queue, queueAnchor)));
             queueRef.set(queue);
         });
 
@@ -120,7 +120,7 @@ public class Wilco {
 
         boolean guardWasOpen = shutdownGuard.closeAndRun(()-> {
             core.cancelIdleTimer();
-            core.scheduleAdminTask(new InitiateShutdownTask(
+            core.scheduleTask(new InitiateShutdownTask(
                     toString(),
                     new ShutdownTaskInfo(core, future, duration, unit, System.currentTimeMillis())));
         });
@@ -147,7 +147,7 @@ public class Wilco {
 
         boolean guardWasOpen = shutdownGuard.closeAndRun(()-> {
             core.cancelIdleTimer();
-            core.scheduleAdminTask(new TryInitiateShutdownTask(
+            core.scheduleTask(new TryInitiateShutdownTask(
                     toString(),
                     new ShutdownTaskInfo(core, future, duration, unit, System.currentTimeMillis()),
                     callback,

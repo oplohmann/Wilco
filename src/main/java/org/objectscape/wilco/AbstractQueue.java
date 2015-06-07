@@ -29,7 +29,11 @@ public abstract class AbstractQueue {
     }
 
     public void close() {
-        boolean wasOpen = closedGuard.closeAndRun(() -> core.scheduleAdminTask(new CloseQueueTask(core, getId())));
+        scheduleClose(new CloseQueueTask(core, getId()));
+    }
+
+    protected void scheduleClose(CloseQueueTask task) {
+        boolean wasOpen = closedGuard.closeAndRun(() -> core.scheduleTask(task));
         if(!wasOpen) {
             throw new QueueClosedException("Queue " + getId() + " already closed");
         }

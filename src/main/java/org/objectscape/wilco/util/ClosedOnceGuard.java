@@ -97,6 +97,30 @@ public class ClosedOnceGuard {
         }
     }
 
+    public boolean runIfOpenOrClosed(Runnable runnable) {
+        try {
+            lock();
+            runnable.run();
+            return true;
+        }
+        catch(RuntimeException e) {
+            throw e;
+        }
+        finally {
+            unlock();
+        }
+    }
+
+    private void lock() {
+        Thread currentThread = Thread.currentThread();
+        while(true) {
+            boolean currentMark = closeGuard.isMarked() ? CLOSED_MARK : OPEN_MARK;
+            if(closeGuard.compareAndSet(null, currentThread, currentMark, currentMark)) {
+                break;
+            }
+        }
+    }
+
     public boolean runIfClosed(Runnable runnable) {
         if(!isClosed()) {
             return false;

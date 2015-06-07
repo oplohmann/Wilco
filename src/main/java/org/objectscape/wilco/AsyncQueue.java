@@ -28,11 +28,12 @@ public class AsyncQueue extends AbstractQueue {
     }
 
     public void execute(Runnable runnable) {
-        lockedForExecuteUser(() -> core.scheduleUserTask(new AsyncScheduledTask(queueAnchor, new ScheduledRunnable(runnable))));
+        lockedForExecuteUser(() -> core.scheduleTask(new AsyncScheduledTask(queueAnchor, new ScheduledRunnable(runnable))));
     }
 
     public void execute(Runnable runnable, Runnable whenDoneRunnable) {
-        lockedForExecuteUser(() -> core.scheduleUserTask(null));
+        // TODO - not yet implemented
+        lockedForExecuteUser(() -> core.scheduleTask(null));
     }
 
     @Override

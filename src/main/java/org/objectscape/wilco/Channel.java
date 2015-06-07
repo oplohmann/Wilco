@@ -1,8 +1,7 @@
 package org.objectscape.wilco;
 
-import org.objectscape.wilco.core.QueueClosedException;
+import org.objectscape.wilco.core.tasks.CloseChannelTask;
 import org.objectscape.wilco.util.ChannelSelectOnReceiveConsumer;
-import org.objectscape.wilco.util.OnReceiveConsumer;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -26,7 +25,6 @@ public class Channel<T> {
     final private CompletableFuture<T> closedFuture = new CompletableFuture();
     private T closeValue;
     final private AtomicBoolean suspended = new AtomicBoolean(true);
-    final private AtomicReference lastItem = new AtomicReference();
     private int currentSelectedConsumer = -1;
 
     public Channel(Queue queue) {
@@ -99,18 +97,7 @@ public class Channel<T> {
     }
 
     public void close(T closeValue) {
-        queue.execute(() -> {
-            try {
-                queue.close();
-            } catch (QueueClosedException e) {
-                return;
-            }
-            this.closeValue = closeValue;
-            closedFuture.complete(closeValue);
-            if (onCloseRef.get() != null) {
-                queue.executeIgnoreClose(() -> onCloseRef.get().run());
-            }
-        });
+        queue.scheduleClose(new CloseChannelTask(queue.core, queue.getId(), closeValue, closedFuture, onCloseRef));
     }
 
     public CompletableFuture<T> getClosedFuture() {

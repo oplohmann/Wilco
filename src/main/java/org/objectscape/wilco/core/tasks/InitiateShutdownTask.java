@@ -21,7 +21,7 @@ public class InitiateShutdownTask extends ShutdownTask {
 
     @Override
     public boolean run(Context context) {
-        getCore().scheduleAdminTask(getRunEmptyShutdownTask());
+        getCore().scheduleTask(getRunEmptyShutdownTask());
         return true;
     }
 

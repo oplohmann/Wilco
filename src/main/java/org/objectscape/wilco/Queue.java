@@ -2,10 +2,10 @@ package org.objectscape.wilco;
 
 import org.objectscape.wilco.core.QueueAnchor;
 import org.objectscape.wilco.core.WilcoCore;
+import org.objectscape.wilco.core.tasks.CoreTask;
 import org.objectscape.wilco.core.tasks.ResumeChannelTask;
 import org.objectscape.wilco.core.tasks.ScheduledTask;
 import org.objectscape.wilco.core.tasks.SuspendChannelTask;
-import org.objectscape.wilco.util.ClosedOnceGuard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,33 +32,42 @@ public class Queue extends AbstractQueue {
     }
 
     public void execute(Runnable runnable) {
-        lockedForExecuteUser(() -> core.scheduleUserTask(new ScheduledTask(queueAnchor, runnable)));
+        lockedForExecuteUser(() -> core.scheduleTask(new ScheduledTask(queueAnchor, runnable)));
     }
 
     public void execute(Runnable runnable, Runnable whenDoneRunnable) {
-        lockedForExecuteUser(() -> core.scheduleUserTask(new ScheduledTask(queueAnchor, runnable, whenDoneRunnable)));
+        lockedForExecuteUser(() -> core.scheduleTask(new ScheduledTask(queueAnchor, runnable, whenDoneRunnable)));
     }
 
     protected void executeIgnoreClose(Runnable runnable) {
-        // Does not check whether closed. Therefore also no QueueClosedException is thrown
-        ClosedOnceGuard.Mark expectedAndNewMark = closedGuard.isClosed() ? ClosedOnceGuard.Mark.CLOSED : ClosedOnceGuard.Mark.CLOSED;
-        closedGuard.run(expectedAndNewMark, () -> core.scheduleUserTask(new ScheduledTask(queueAnchor, runnable)));
+        closedGuard.runIfOpenOrClosed(() -> core.scheduleTask(new ScheduledTask(queueAnchor, runnable)));
+    }
+
+    protected void executeIgnoreCloseUser(Runnable runnable) {
+        closedGuard.runIfOpenOrClosed(() -> {
+            incrementSize();
+            core.scheduleTask(new ScheduledTask(queueAnchor, runnable));
+        });
+    }
+
+    protected void executeIgnoreClose(CoreTask task) {
+        closedGuard.runIfOpenOrClosed(() -> core.scheduleTask(task));
     }
 
     public void suspend() {
-        lockedForExecute(()-> core.scheduleAdminTask(new SuspendChannelTask(queueAnchor)));
+        executeIgnoreClose(new SuspendChannelTask(queueAnchor));
     }
 
     public void suspend(Runnable whenDoneRunnable) {
-        lockedForExecute(()-> core.scheduleAdminTask(new SuspendChannelTask(queueAnchor, whenDoneRunnable)));
+        executeIgnoreClose(new SuspendChannelTask(queueAnchor, whenDoneRunnable));
     }
 
     public void resume() {
-        lockedForExecute(()-> core.scheduleAdminTask(new ResumeChannelTask(queueAnchor)));
+        executeIgnoreClose(new ResumeChannelTask(queueAnchor));
     }
 
     public void resume(Runnable whenDoneRunnable) {
-        lockedForExecute(()-> core.scheduleAdminTask(new ResumeChannelTask(queueAnchor, whenDoneRunnable)));
+        executeIgnoreClose(new ResumeChannelTask(queueAnchor, whenDoneRunnable));
     }
 
     protected void clear() {
@@ -101,4 +110,5 @@ public class Queue extends AbstractQueue {
     protected String getIdWithCoreId() {
         return "{queueId=\"" + getId() + "\" wilcoInstanceId=" + core.getId() + "}";
     }
+
 }
