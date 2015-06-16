@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Scheduler implements Runnable {
 
     final private Context context;
-    final private TransferPriorityQueue<Task> schedulerQueue;
+    final private TransferPriorityQueue<Task> schedulerQueue = new TransferPriorityQueue<>();
     final private AtomicBoolean running = new AtomicBoolean(false);
     final private Map<String, QueueCore> queuesById = new TreeMap<>();
 
@@ -24,7 +24,6 @@ public class Scheduler implements Runnable {
     private boolean proceed = true;
 
     public Scheduler(WilcoCore core, ThreadPoolExecutor executor) {
-        this.schedulerQueue = new TransferPriorityQueue<>();
         this.context = new Context(this, core, schedulerQueue, executor);
     }
 
