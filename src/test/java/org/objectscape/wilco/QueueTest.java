@@ -2,6 +2,7 @@ package org.objectscape.wilco;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.objectscape.wilco.core.DuplicateIdException;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -27,7 +28,14 @@ public class QueueTest extends AbstractTest {
         Assert.assertNotNull(queue);
     }
 
-        @Test
+    @Test(expected = DuplicateIdException.class)
+    public void duplicateIdWithTaskQueues() {
+        String id = "foo";
+        wilco.createQueue(id);
+        wilco.createQueue(id);
+    }
+
+    @Test
     public void createChannel() throws InterruptedException, ExecutionException {
 
         Queue queue = wilco.createQueue();
@@ -252,13 +260,6 @@ public class QueueTest extends AbstractTest {
 
         wilco.clearDLQ();
         wilco.shutdown(10, TimeUnit.SECONDS);
-    }
-
-    @Test(expected = DuplicateIdException.class)
-    public void duplicateIdWithTaskQueues() {
-        String id = "foo";
-        wilco.createQueue(id);
-        wilco.createQueue(id);
     }
 
     @Test(expected = DuplicateIdException.class)

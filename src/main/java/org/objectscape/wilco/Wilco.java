@@ -42,6 +42,13 @@ public class Wilco {
         return createQueue(idStore.generateId(), false);
     }
 
+    public Queue createQueue(String queueId) {
+        if(queueId == null) {
+            throw new NullPointerException("queueId null");
+        }
+        return createQueue(queueId, true);
+    }
+
     private Queue createQueue(String id, boolean verifyIdUnique) {
 
         if(id == null) {
