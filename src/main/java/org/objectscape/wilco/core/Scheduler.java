@@ -19,6 +19,7 @@ public class Scheduler implements Runnable {
     final private TransferPriorityQueue<Task> schedulerQueue = new TransferPriorityQueue<>();
     final private AtomicBoolean running = new AtomicBoolean(false);
     final private Map<String, QueueCore> queuesById = new TreeMap<>();
+    final private AtomicLong queueCount = new AtomicLong(0);
 
     final private AtomicLong lastTimeActive = new AtomicLong();
     private boolean proceed = true;
@@ -70,10 +71,26 @@ public class Scheduler implements Runnable {
     }
 
     public boolean addQueue(QueueCore queueCore) {
+        queueCount.incrementAndGet();
         return queuesById.put(queueCore.getId(), queueCore) == null;
+    }
+
+    public boolean removeQueue(String queueId) {
+        QueueCore queueCore = queuesById.remove(queueId);
+        if(queueCore != null) {
+            queueCount.decrementAndGet();
+            // TODO - have to think about how to do this as this creates NullPointerExceptions
+            // queueSpine.clear();
+            return true;
+        }
+        return false;
     }
 
     public void scheduleSystemTask(SystemTask task) {
         schedulerQueue.add(task);
+    }
+
+    public long getQueueCount() {
+        return queueCount.get();
     }
 }

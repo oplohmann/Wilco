@@ -28,6 +28,14 @@ public class QueueTest extends AbstractTest {
         Assert.assertNotNull(queue);
     }
 
+    @Test
+    public void createMultipleQueues() throws InterruptedException {
+        Queue queue1 = wilco.createQueue();
+        Assert.assertNotNull(queue1);
+        Queue queue2 = wilco.createQueue();
+        Assert.assertNotNull(queue2);
+    }
+
     @Test(expected = DuplicateIdException.class)
     public void duplicateIdWithTaskQueues() {
         String id = "foo";

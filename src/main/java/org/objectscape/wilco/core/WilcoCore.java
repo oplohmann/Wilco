@@ -46,7 +46,13 @@ public class WilcoCore {
     }
 
     public Scheduler getLeastLoadedScheduler() {
-        // TODO - implement load determination
-        return schedulers[0];
+        // Very simple strategy for the time being.
+        Scheduler leastLoadedScheduler = schedulers[0];
+        for(Scheduler scheduler : schedulers) {
+            if(scheduler.getQueueCount() < leastLoadedScheduler.getQueueCount()) {
+                leastLoadedScheduler = scheduler;
+            }
+        }
+        return leastLoadedScheduler;
     }
 }
