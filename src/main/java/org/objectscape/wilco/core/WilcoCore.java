@@ -41,7 +41,7 @@ public class WilcoCore {
         schedulers = new Scheduler[config.getNumberOfSchedulers()];
 
         for (int i = 0; i < config.getNumberOfSchedulers(); i++) {
-            schedulers[i] = new Scheduler(this, executor).start();
+            schedulers[i] = new Scheduler(this, executor, id, i).start();
         }
     }
 

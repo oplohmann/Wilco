@@ -20,4 +20,12 @@ public class Queue {
 
     public void execute(Runnable runnable) {
     }
+
+    public String toString() {
+        return "Queue{" + getId() + "}";
+    }
+
+    public String getId() {
+        return core.getId();
+    }
 }

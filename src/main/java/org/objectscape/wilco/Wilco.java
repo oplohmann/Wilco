@@ -1,6 +1,7 @@
 package org.objectscape.wilco;
 
 import org.objectscape.wilco.core.QueueCore;
+import org.objectscape.wilco.core.Scheduler;
 import org.objectscape.wilco.core.ShutdownException;
 import org.objectscape.wilco.core.WilcoCore;
 import org.objectscape.wilco.core.tasks.CreateQueueTask;
@@ -59,9 +60,10 @@ public class Wilco {
 
         boolean guardOpen = shutdownGuard.runIfOpen(()-> {
             String queueId = verifyIdUnique ? idStore.compareAndSetId(id) : id;
-            QueueCore queueCore = new QueueCore(queueId);
+            Scheduler scheduler = core.getLeastLoadedScheduler();
+            QueueCore queueCore = new QueueCore(queueId, scheduler.getId());
             Queue queue = new Queue(queueCore);
-            core.getLeastLoadedScheduler().scheduleSystemTask(new CreateQueueTask(queueCore));
+            scheduler.scheduleSystemTask(new CreateQueueTask(queueCore));
             queueRef.set(queue);
         });
 

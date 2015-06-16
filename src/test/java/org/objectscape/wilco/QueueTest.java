@@ -29,11 +29,31 @@ public class QueueTest extends AbstractTest {
     }
 
     @Test
-    public void createMultipleQueues() throws InterruptedException {
+    public void queueId() throws InterruptedException {
         Queue queue1 = wilco.createQueue();
         Assert.assertNotNull(queue1);
+        Assert.assertEquals("core=0, scheduler=0, queue=0", queue1.getId());
+        Assert.assertEquals("Queue{core=0, scheduler=0, queue=0}", queue1.toString());
         Queue queue2 = wilco.createQueue();
         Assert.assertNotNull(queue2);
+        Assert.assertEquals("core=0, scheduler=1, queue=1", queue2.getId());
+        Assert.assertEquals("Queue{core=0, scheduler=1, queue=1}", queue2.toString());
+    }
+
+    @Test
+    public void createMultipleQueues() throws InterruptedException {
+        Queue queue1 = wilco.createQueue();
+
+        Assert.assertNotNull(queue1);
+
+        // assigned to 1st scheduler, e.g. scheduler=0
+        Assert.assertTrue(queue1.getId().contains("core=0, scheduler=0"));
+
+        Queue queue2 = wilco.createQueue();
+        Assert.assertNotNull(queue2);
+
+        // assigned to 2nd scheduler, e.g. scheduler=1
+        Assert.assertTrue(queue2.getId().contains("core=0, scheduler=1"));
     }
 
     @Test(expected = DuplicateIdException.class)

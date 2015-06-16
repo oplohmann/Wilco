@@ -7,9 +7,9 @@ public class QueueCore {
 
     final private String id;
 
-    public QueueCore(String id) {
+    public QueueCore(String queueId, String schedulerId) {
         super();
-        this.id = id;
+        this.id = schedulerId + ", queue=" + queueId;
     }
 
     public String getId() {

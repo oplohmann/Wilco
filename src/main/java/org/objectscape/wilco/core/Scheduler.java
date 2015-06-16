@@ -20,11 +20,13 @@ public class Scheduler implements Runnable {
     final private AtomicBoolean running = new AtomicBoolean(false);
     final private Map<String, QueueCore> queuesById = new TreeMap<>();
     final private AtomicLong queueCount = new AtomicLong(0);
+    final private String id;
 
     final private AtomicLong lastTimeActive = new AtomicLong();
     private boolean proceed = true;
 
-    public Scheduler(WilcoCore core, ThreadPoolExecutor executor) {
+    public Scheduler(WilcoCore core, ThreadPoolExecutor executor, String id, int count) {
+        this.id = "core=" + id + ", scheduler=" + count;
         this.context = new Context(this, core, schedulerQueue, executor);
     }
 
@@ -92,5 +94,9 @@ public class Scheduler implements Runnable {
 
     public long getQueueCount() {
         return queueCount.get();
+    }
+
+    public String getId() {
+        return id;
     }
 }
