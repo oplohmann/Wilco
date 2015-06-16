@@ -1,6 +1,7 @@
 package org.objectscape.wilco.core;
 
 import org.objectscape.wilco.Config;
+import org.objectscape.wilco.core.tasks.SystemTask;
 import org.objectscape.wilco.core.tasks.Task;
 import org.objectscape.wilco.util.TransferPriorityQueue;
 import org.slf4j.Logger;
@@ -30,7 +31,7 @@ public class WilcoCore {
 
     private TransferPriorityQueue<Task> schedulerQueue = new TransferPriorityQueue<>();
 
-    public WilcoCore(Config config, String asyncQueueId)
+    public WilcoCore(Config config)
     {
         this.config = config;
 
@@ -51,4 +52,11 @@ public class WilcoCore {
         thread.start();
     }
 
+    public boolean addQueue(QueueCore queueCore) {
+        return queuesById.put(queueCore.getId(), queueCore) == null;
+    }
+
+    public void scheduleSystemTask(SystemTask task) {
+        schedulerQueue.add(task);
+    }
 }

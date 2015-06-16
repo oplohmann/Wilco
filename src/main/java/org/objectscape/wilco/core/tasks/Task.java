@@ -13,7 +13,6 @@ public abstract class Task {
 
     public static final int SYSTEM_PRIORITY = 0;
     public static final int USER_PRIORITY = 1;
-    public static final int MIN_PRIORITY = 2;
 
     public abstract boolean run(Context context);
 
@@ -21,4 +20,5 @@ public abstract class Task {
 
     public abstract int priority();
 
+    public abstract void clear();
 }

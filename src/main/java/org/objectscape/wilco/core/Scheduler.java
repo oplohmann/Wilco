@@ -37,6 +37,7 @@ public class Scheduler implements Runnable {
             try {
                 task = schedulerQueue.take();
                 proceed = task.run(context);
+                task.clear();
             }
             catch (Exception e) {
                 // TODO - NYI

@@ -1,6 +1,6 @@
 package org.objectscape.wilco;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
@@ -15,10 +15,19 @@ public class QueueTest extends AbstractTest {
 
     @Test
     public void createInstance() {
-        Wilco dispatch = Wilco.newInstance(new Config());
+        Wilco wilco1 = Wilco.newInstance();
+        Assert.assertNotNull(wilco1);
+        Wilco wilco2 = Wilco.newInstance(new Config());
+        Assert.assertNotNull(wilco2);
     }
 
     @Test
+    public void createQueue() throws InterruptedException {
+        Queue queue = wilco.createQueue();
+        Assert.assertNotNull(queue);
+    }
+
+        @Test
     public void createChannel() throws InterruptedException, ExecutionException {
 
         Queue queue = wilco.createQueue();

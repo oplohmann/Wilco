@@ -16,7 +16,8 @@ public abstract class AbstractTest {
 
     @Before
     public void startUp() {
-        wilco = Wilco.newInstance(new Config());
+        Config config = new Config();
+        wilco = Wilco.newInstance(config);
     }
 
     @After
