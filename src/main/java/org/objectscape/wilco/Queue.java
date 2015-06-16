@@ -18,4 +18,6 @@ public class Queue {
         this.core = core;
     }
 
+    public void execute(Runnable runnable) {
+    }
 }

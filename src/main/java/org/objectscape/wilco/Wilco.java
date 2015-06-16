@@ -37,4 +37,7 @@ public class Wilco {
         }
     }
 
+    public Queue createQueue() {
+        return null;
+    }
 }
