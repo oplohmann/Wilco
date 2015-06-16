@@ -9,26 +9,34 @@ import java.util.concurrent.TimeUnit;
  */
 public class Config {
 
+    final public static int DefaultCorePoolSize = Runtime.getRuntime().availableProcessors() * 4;
+    final public static int DefaultMaximumPoolSize = DefaultCorePoolSize * 2;
+    final public static int DefaultKeepAliveTime = 5000;
+    final public static int DefaultNumberOfSchedulers = 2;
+
     final private int corePoolSize;
     final private int maximumPoolSize;
     final private long keepAliveTime;
     final private TimeUnit unit;
     final private BlockingQueue<Runnable> queue;
+    final private int numberOfSchedulers;
 
     public Config() {
-        corePoolSize = Runtime.getRuntime().availableProcessors() * 4;
-        maximumPoolSize = corePoolSize * 2;
-        keepAliveTime = 5000;
+        corePoolSize = DefaultCorePoolSize;
+        maximumPoolSize = DefaultMaximumPoolSize;
+        keepAliveTime = DefaultKeepAliveTime;
         unit = TimeUnit.MILLISECONDS;
         queue = createDefaultQueue();
+        numberOfSchedulers = DefaultNumberOfSchedulers;
     }
 
-    public Config(int corePoolSize, int maximumPoolSize) {
+    public Config(int corePoolSize, int maximumPoolSize, int numberOfSchedulers) {
         this.corePoolSize = corePoolSize;
         this.maximumPoolSize = maximumPoolSize;
-        this.keepAliveTime = 5000;
+        this.keepAliveTime = DefaultKeepAliveTime;
         this.unit = TimeUnit.MILLISECONDS;
-        queue = createDefaultQueue();
+        this.queue = createDefaultQueue();
+        this.numberOfSchedulers = numberOfSchedulers;
     }
 
     public Config(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit) {
@@ -36,7 +44,8 @@ public class Config {
         this.maximumPoolSize = maximumPoolSize;
         this.keepAliveTime = keepAliveTime;
         this.unit = unit;
-        queue = createDefaultQueue();
+        this.queue = createDefaultQueue();
+        this.numberOfSchedulers = DefaultNumberOfSchedulers;
     }
 
     public Config(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> queue) {
@@ -45,6 +54,16 @@ public class Config {
         this.keepAliveTime = keepAliveTime;
         this.unit = unit;
         this.queue = queue;
+        this.numberOfSchedulers = DefaultNumberOfSchedulers;
+    }
+
+    public Config(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> queue, int numberOfSchedulers) {
+        this.corePoolSize = corePoolSize;
+        this.maximumPoolSize = maximumPoolSize;
+        this.keepAliveTime = keepAliveTime;
+        this.unit = unit;
+        this.queue = queue;
+        this.numberOfSchedulers = numberOfSchedulers;
     }
 
     private BlockingQueue<Runnable> createDefaultQueue() {
@@ -69,5 +88,9 @@ public class Config {
 
     public BlockingQueue<Runnable> getQueue() {
         return queue;
+    }
+
+    public int getNumberOfSchedulers() {
+        return numberOfSchedulers;
     }
 }

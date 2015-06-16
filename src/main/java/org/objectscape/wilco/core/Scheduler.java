@@ -1,8 +1,11 @@
 package org.objectscape.wilco.core;
 
+import org.objectscape.wilco.core.tasks.SystemTask;
 import org.objectscape.wilco.core.tasks.Task;
 import org.objectscape.wilco.util.TransferPriorityQueue;
 
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -15,13 +18,14 @@ public class Scheduler implements Runnable {
     final private Context context;
     final private TransferPriorityQueue<Task> schedulerQueue;
     final private AtomicBoolean running = new AtomicBoolean(false);
+    final private Map<String, QueueCore> queuesById = new TreeMap<>();
 
-    private AtomicLong lastTimeActive = new AtomicLong();
+    final private AtomicLong lastTimeActive = new AtomicLong();
     private boolean proceed = true;
 
-    public Scheduler(WilcoCore core, TransferPriorityQueue<Task> schedulerQueue, ThreadPoolExecutor executor) {
-        this.schedulerQueue = schedulerQueue;
-        this.context = new Context(core, schedulerQueue, executor);
+    public Scheduler(WilcoCore core, ThreadPoolExecutor executor) {
+        this.schedulerQueue = new TransferPriorityQueue<>();
+        this.context = new Context(this, core, schedulerQueue, executor);
     }
 
     @Override
@@ -57,5 +61,20 @@ public class Scheduler implements Runnable {
 
     public long getLastTimeActive() {
         return lastTimeActive.get();
+    }
+
+    public Scheduler start() {
+        Thread thread = new Thread(this);
+        thread.setPriority(Thread.MAX_PRIORITY);
+        thread.start();
+        return this;
+    }
+
+    public boolean addQueue(QueueCore queueCore) {
+        return queuesById.put(queueCore.getId(), queueCore) == null;
+    }
+
+    public void scheduleSystemTask(SystemTask task) {
+        schedulerQueue.add(task);
     }
 }

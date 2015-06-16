@@ -1,14 +1,9 @@
 package org.objectscape.wilco.core;
 
 import org.objectscape.wilco.Config;
-import org.objectscape.wilco.core.tasks.SystemTask;
-import org.objectscape.wilco.core.tasks.Task;
-import org.objectscape.wilco.util.TransferPriorityQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,13 +18,10 @@ public class WilcoCore {
     private static AtomicInteger IdCount = new AtomicInteger(0);
 
     final private Config config;
-    final private Scheduler scheduler;
+    final private Scheduler[] schedulers;
     final private ThreadPoolExecutor executor;
     final private ScheduledThreadPoolExecutor scheduledExecutor;
-    final private Map<String, QueueCore> queuesById = new TreeMap<>();
     final private String id;
-
-    private TransferPriorityQueue<Task> schedulerQueue = new TransferPriorityQueue<>();
 
     public WilcoCore(Config config)
     {
@@ -46,17 +38,15 @@ public class WilcoCore {
 
         scheduledExecutor = new ScheduledThreadPoolExecutor(1);
 
-        scheduler = new Scheduler(this, schedulerQueue, executor);
-        Thread thread = new Thread(scheduler);
-        thread.setPriority(Thread.MAX_PRIORITY);
-        thread.start();
+        schedulers = new Scheduler[config.getNumberOfSchedulers()];
+
+        for (int i = 0; i < config.getNumberOfSchedulers(); i++) {
+            schedulers[i] = new Scheduler(this, executor).start();
+        }
     }
 
-    public boolean addQueue(QueueCore queueCore) {
-        return queuesById.put(queueCore.getId(), queueCore) == null;
-    }
-
-    public void scheduleSystemTask(SystemTask task) {
-        schedulerQueue.add(task);
+    public Scheduler getLeastLoadedScheduler() {
+        // TODO - implement load determination
+        return schedulers[0];
     }
 }

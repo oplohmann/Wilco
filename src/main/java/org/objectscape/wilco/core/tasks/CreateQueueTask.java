@@ -16,7 +16,7 @@ public class CreateQueueTask extends SystemTask {
 
     @Override
     public boolean run(Context context) {
-        context.getCore().addQueue(queueCore);
+        context.getScheduler().addQueue(queueCore);
         return true;
     }
 

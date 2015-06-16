@@ -61,7 +61,7 @@ public class Wilco {
             String queueId = verifyIdUnique ? idStore.compareAndSetId(id) : id;
             QueueCore queueCore = new QueueCore(queueId);
             Queue queue = new Queue(queueCore);
-            core.scheduleSystemTask(new CreateQueueTask(queueCore));
+            core.getLeastLoadedScheduler().scheduleSystemTask(new CreateQueueTask(queueCore));
             queueRef.set(queue);
         });
 

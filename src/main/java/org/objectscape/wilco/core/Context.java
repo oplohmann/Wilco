@@ -12,11 +12,13 @@ public class Context {
 
     // final private DeadLetterQueue deadLetterQueue;
 
+    final private Scheduler scheduler;
     final private ThreadPoolExecutor executor;
     final private TransferPriorityQueue<Task> schedulerQueue;
     final private WilcoCore core;
 
-    public Context(WilcoCore core, TransferPriorityQueue<Task> schedulerQueue, ThreadPoolExecutor executor) {
+    public Context(Scheduler scheduler, WilcoCore core, TransferPriorityQueue<Task> schedulerQueue, ThreadPoolExecutor executor) {
+        this.scheduler = scheduler;
         this.core = core;
         this.schedulerQueue = schedulerQueue;
         this.executor = executor;
@@ -34,4 +36,7 @@ public class Context {
         return schedulerQueue;
     }
 
+    public Scheduler getScheduler() {
+        return scheduler;
+    }
 }
