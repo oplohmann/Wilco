@@ -99,4 +99,8 @@ public class Scheduler implements Runnable {
     public String getId() {
         return id;
     }
+
+    public TransferPriorityQueue<Task> getSchedulerQueue() {
+        return schedulerQueue;
+    }
 }

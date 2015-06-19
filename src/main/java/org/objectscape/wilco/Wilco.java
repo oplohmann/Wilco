@@ -61,7 +61,7 @@ public class Wilco {
         boolean guardOpen = shutdownGuard.runIfOpen(()-> {
             String queueId = verifyIdUnique ? idStore.compareAndSetId(id) : id;
             Scheduler scheduler = core.getLeastLoadedScheduler();
-            QueueCore queueCore = new QueueCore(queueId, scheduler.getId());
+            QueueCore queueCore = new QueueCore(scheduler.getSchedulerQueue(), queueId, scheduler.getId());
             Queue queue = new Queue(queueCore);
             scheduler.scheduleSystemTask(new CreateQueueTask(queueCore));
             queueRef.set(queue);

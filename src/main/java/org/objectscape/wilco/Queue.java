@@ -1,6 +1,8 @@
 package org.objectscape.wilco;
 
 import org.objectscape.wilco.core.QueueCore;
+import org.objectscape.wilco.core.ScheduledRunnable;
+import org.objectscape.wilco.core.tasks.ScheduledTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +21,7 @@ public class Queue {
     }
 
     public void execute(Runnable runnable) {
+        core.execute(new ScheduledTask(core, new ScheduledRunnable(runnable)));
     }
 
     public String toString() {

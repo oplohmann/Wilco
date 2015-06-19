@@ -64,6 +64,31 @@ public class QueueTest extends AbstractTest {
     }
 
     @Test
+    public void executeMany() throws InterruptedException {
+        // verify that all tasks are carried out strictly sequentially
+        Queue queue = wilco.createQueue();
+        int numTasks = 5000;
+        AtomicInteger count = new AtomicInteger(0);
+        CountDownLatch latch = new CountDownLatch(1);
+
+        Runnable runnable = () -> {
+            int previousCount = count.get();
+            // TODO - NYI
+            /*
+            if(tempCurrentCount == numTasks) {
+                latch.countDown();
+            }
+            */
+        };
+
+        for (int i = 0; i < numTasks; i++) {
+            queue.execute(runnable);
+        }
+
+        latch.await();
+    }
+
+    @Test
     public void createChannel() throws InterruptedException, ExecutionException {
 
         Queue queue = wilco.createQueue();
